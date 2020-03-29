@@ -20,6 +20,9 @@ namespace HTTPServ {
             virtual ~Response();
             void flush();
             void close();
+
+            HTTPServ::Response* status(int code);
+            HTTPServ::Response* end(const std::string &body);
     };
 }
 

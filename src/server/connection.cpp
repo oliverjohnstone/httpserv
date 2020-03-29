@@ -3,6 +3,7 @@
 //
 
 #include <server/connection.h>
+#include <server/error.h>
 
 HTTPServ::Connection::Connection(HTTPServ::Request *request, HTTPServ::Response *response) : request(request), response(response) {}
 
@@ -23,9 +24,9 @@ void HTTPServ::Connection::reject() {
 void HTTPServ::Connection::parseRequestHeaders() {
     try {
         request->parseHeaders();
-    } catch (int e) {
-        throw e;
+    } catch (HTTPError& e) {
+        response->status(e.getCode())->end(e.getMessage());
+        // TODO - Logging here?
         // TODO - Respond with http status code specified in e
     }
-    response->close();
 }

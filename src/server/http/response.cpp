@@ -18,3 +18,13 @@ void HTTPServ::Response::close() {
     flush();
     stream->close();
 }
+
+HTTPServ::Response* HTTPServ::Response::status(int code) {
+    // TODO - Send status code
+    return this;
+}
+
+HTTPServ::Response* HTTPServ::Response::end(const std::string &body) {
+    // TODO - Send body
+    return this;
+}

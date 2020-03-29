@@ -13,7 +13,6 @@ HTTPServ::Server::Server(int port, Logger& logger) : port(port), logger(logger),
 }
 
 int HTTPServ::Server::run() {
-    logger.info(("Starting on port: " + to_string(port) + "...").c_str());
     socket = new ServerSocket(port, 50);
     try {
         socket->listen();
@@ -23,6 +22,8 @@ int HTTPServ::Server::run() {
     }
 
     auto futureResult = async(&Server::run_async, this);
+
+    logger.info(("Started on http://localhost:" + to_string(port)).c_str());
 
     // TODO - Do any server processing / clean up etc here
 
@@ -35,7 +36,7 @@ int HTTPServ::Server::run_async() {
     while(running) {
         try {
             auto [in, out] = socket->waitForClientConnection();
-            auto conn = new Connection(new Request(in), new Response(out));
+            auto conn = new Connection(new Request(in, logger), new Response(out));
 
             if (running) {
                 connectionHandlers.push_back(async(&Server::handle_request, this, conn));

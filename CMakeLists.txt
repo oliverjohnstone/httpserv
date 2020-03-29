@@ -21,7 +21,10 @@ add_library(httpserv
   src/server/socket/socket.cpp
   src/server/socket/stream.cpp
   src/server/connection.cpp
-  src/server/http/request.cpp src/server/http/response.cpp src/server/http/response.h)
+  src/server/http/request.cpp
+  src/server/http/response.cpp
+  include/server/error.h
+)
 
 add_executable(example
   example/src/example.cpp

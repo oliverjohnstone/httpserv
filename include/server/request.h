@@ -7,6 +7,7 @@
 
 #include <boost/iostreams/stream.hpp>
 #include <map>
+#include <logger/logger.h>
 #include "stream.h"
 
 namespace io = boost::iostreams;
@@ -21,14 +22,16 @@ namespace HTTPServ {
             VERB verb = NONE;
             std::string uri;
             std::string httpVersion;
+            Logger& logger;
 
             void parseRequestLine();
             static void getLine(std::istream* is, std::string& out);
 
         public:
-            explicit Request(io::stream<InSocketStream> *stream);
+            Request(io::stream<InSocketStream>* stream, Logger& logger);
             virtual ~Request();
             void parseHeaders();
+            Logger& log();
     };
 }
 

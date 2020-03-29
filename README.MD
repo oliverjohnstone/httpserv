@@ -1,3 +1,5 @@
 # HTTPServ
 
-A http/s server build in c++
+Just a small http server library built in c++. It doesn't claim to be anything special, it's just something to keep my mind occupied during the quarantine. 
+
+See example app for usage.
