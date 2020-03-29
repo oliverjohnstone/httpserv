@@ -3,6 +3,7 @@
 //
 
 #include <server/response.h>
+#include <sstream>
 
 HTTPServ::Response::Response(io::stream<OutSocketStream> *stream) : stream(stream) {}
 
@@ -20,11 +21,19 @@ void HTTPServ::Response::close() {
 }
 
 HTTPServ::Response* HTTPServ::Response::status(int code) {
-    // TODO - Send status code
+    statusCode = code;
     return this;
 }
 
+void HTTPServ::Response::sendHeaders() {
+    *stream <<
+        httpVersion << " " << statusCode << " OK\r\n"
+        << "Connection: Closed\r\n"
+        << "\r\n";
+}
+
 HTTPServ::Response* HTTPServ::Response::end(const std::string &body) {
-    // TODO - Send body
+    sendHeaders();
+    *stream << body;
     return this;
 }

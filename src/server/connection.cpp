@@ -29,4 +29,6 @@ void HTTPServ::Connection::parseRequestHeaders() {
         // TODO - Logging here?
         // TODO - Respond with http status code specified in e
     }
+
+    response->status(200)->end("Hello World");
 }
