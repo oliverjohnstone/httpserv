@@ -20,7 +20,13 @@ void HTTPServ::Logger::log(const char *msg, LOG_LEVEL level) {
 
     logStream << buffer;
     logLevelText(buffer, level);
-    logStream << buffer << msg << endl;
+    logStream << buffer;
+
+    if (!id.empty()) {
+        logStream << "(" << id << ") ";
+    }
+
+    logStream << msg << endl;
 }
 
 void HTTPServ::Logger::warn(const char *msg) {
@@ -37,6 +43,8 @@ void HTTPServ::Logger::error(const char *msg) {
 
 HTTPServ::Logger::Logger(ostream& logStream, bool enableColour) : logStream(logStream), enableColour(enableColour) {}
 
+HTTPServ::Logger::Logger(std::ostream& stream, bool enableColour, std::string& id) : id(id), logStream(stream), enableColour(enableColour) {}
+
 void HTTPServ::Logger::logLevelText(char* out, LOG_LEVEL level) {
     auto format = "%s%s%s: ";
     auto end = "\033[0m";
@@ -51,4 +59,8 @@ void HTTPServ::Logger::logLevelText(char* out, LOG_LEVEL level) {
         default:
             sprintf(out, format, "", "INFO", "");
     }
+}
+
+HTTPServ::Logger* HTTPServ::Logger::child(std::string& childId) {
+    return new Logger(this->logStream, this->enableColour, childId);
 }

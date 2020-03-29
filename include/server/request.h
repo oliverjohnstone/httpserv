@@ -6,6 +6,9 @@
 #define HTTPSERV_REQUEST_H
 
 #include <boost/iostreams/stream.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <map>
 #include <logger/logger.h>
 #include "stream.h"
@@ -22,7 +25,8 @@ namespace HTTPServ {
             VERB verb = NONE;
             std::string uri;
             std::string httpVersion;
-            Logger& logger;
+            Logger* logger;
+            boost::uuids::uuid id;
 
             void parseRequestLine();
             static void getLine(std::istream* is, std::string& out);
@@ -31,7 +35,7 @@ namespace HTTPServ {
             Request(io::stream<InSocketStream>* stream, Logger& logger);
             virtual ~Request();
             void parseHeaders();
-            Logger& log();
+            Logger* log();
     };
 }
 

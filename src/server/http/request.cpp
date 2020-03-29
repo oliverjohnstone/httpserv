@@ -15,10 +15,20 @@ std::map<std::string, HTTPServ::VERB> verbMap = {
     {"HEAD", HTTPServ::VERB::HEAD},
 };
 
-HTTPServ::Request::Request(io::stream<InSocketStream> *stream, Logger &logger) : stream(stream), logger(logger) {}
+HTTPServ::Request::Request(io::stream<InSocketStream> *stream, Logger &logger) : stream(stream) {
+    boost::uuids::random_generator generateId;
+    id = generateId();
+    std::string uuidStr = boost::uuids::to_string(id);
+
+    this->logger = logger.child(uuidStr);
+    this->logger->info("Request started");
+}
 
 HTTPServ::Request::~Request() {
+    logger->info("Request finished");
+
     delete stream;
+    delete logger; // New instance of logger as child
 }
 
 void HTTPServ::Request::parseRequestLine() {
@@ -77,6 +87,6 @@ void HTTPServ::Request::getLine(std::istream* is, std::string& out) {
     out.erase(out.find_last_not_of('\r') + 1);
 }
 
-HTTPServ::Logger& HTTPServ::Request::log() {
+HTTPServ::Logger* HTTPServ::Request::log() {
     return logger;
 }
