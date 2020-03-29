@@ -16,8 +16,8 @@ int HTTPServ::Server::run() {
     socket = new ServerSocket(port, 50);
     try {
         socket->listen();
-    } catch (const char *e) {
-        logger.error(e);
+    } catch (SocketError& e) {
+        logger.error(e.getMessage().c_str());
         return 1;
     }
 
@@ -44,9 +44,9 @@ int HTTPServ::Server::run_async() {
                 conn->reject();
                 delete conn;
             }
-        } catch (const char *e) {
-            logger.error(e);
-            continue;
+        } catch (SocketError& e) {
+            logger.error(e.getMessage().c_str());
+            continue; // TODO - perhaps the server socket has failed and we should restart?
         }
     }
 

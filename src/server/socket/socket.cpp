@@ -12,11 +12,11 @@ void HTTPServ::ServerSocket::listen() {
 
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (!sock) {
-        throw "Unable to create new socket";
+        throw SocketError("Unable to create new socket");
     }
 
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) != 0) {
-        throw "Unable to set socket options";
+        throw SocketError("Unable to set socket options");
     }
 
     address.sin_family = AF_INET;
@@ -24,11 +24,11 @@ void HTTPServ::ServerSocket::listen() {
     address.sin_port = htons(port);
 
     if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        throw "Unable to bind to port";
+        throw SocketError("Unable to bind to port");
     }
 
     if (::listen(sock, maxConnections) < 0) {
-        throw "Unable to listen";
+        throw SocketError("Unable to listen");
     }
 }
 
@@ -36,7 +36,7 @@ std::tuple<io::stream<HTTPServ::InSocketStream>*, io::stream<HTTPServ::OutSocket
     auto addressLength = sizeof(address);
     auto client_sock = accept(sock, (struct sockaddr *)&address, (socklen_t*)&addressLength);
     if (client_sock < 0) {
-        throw "Invalid client socket";
+        throw SocketError("Invalid client socket");
     }
 
     auto in = new io::stream<InSocketStream>(client_sock);
@@ -51,4 +51,10 @@ void HTTPServ::ServerSocket::close() {
 
 HTTPServ::ServerSocket::~ServerSocket() {
     close();
+}
+
+HTTPServ::SocketError::SocketError(const std::string &message) : message(message) {}
+
+const std::string &HTTPServ::SocketError::getMessage() const {
+    return message;
 }

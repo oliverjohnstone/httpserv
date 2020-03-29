@@ -14,6 +14,15 @@
 namespace io = boost::iostreams;
 
 namespace HTTPServ {
+    class SocketError : public std::exception {
+        private:
+            std::string message;
+
+        public:
+            explicit SocketError(const std::string &message);
+            [[nodiscard]] const std::string &getMessage() const;
+    };
+
     class ServerSocket {
         private:
             int port, maxConnections, sock;
