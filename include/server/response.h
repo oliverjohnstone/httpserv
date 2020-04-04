@@ -8,6 +8,7 @@
 #include <boost/iostreams/stream.hpp>
 #include <map>
 #include "stream.h"
+#include "http.h"
 
 namespace io = boost::iostreams;
 
@@ -17,8 +18,8 @@ namespace HTTPServ {
             io::stream<OutSocketStream> *stream;
             std::map<std::string, std::string> headers;
             bool headersSent = false;
-            int statusCode = 200;
-            std::string httpVersion = "HTTP/1.1"; // TODO - Put a valid version here, parsed from request?
+            HTTP::STATUS statusCode = HTTP::STATUS::OK;
+            const char * httpVersion =  HTTP::VERSION_1_1; // TODO - Put a valid version here, parsed from request?
 
             void sendHeaders();
 
@@ -28,8 +29,9 @@ namespace HTTPServ {
             void flush();
             void close();
 
-            HTTPServ::Response* status(int code);
-            HTTPServ::Response* end(const std::string &body);
+            HTTPServ::Response* status(HTTPServ::HTTP::STATUS code);
+            HTTPServ::Response* end(const std::string &body = "");
+            HTTPServ::Response* header(const std::string& name, std::string value);
     };
 }
 

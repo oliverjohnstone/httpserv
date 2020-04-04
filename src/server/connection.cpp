@@ -5,7 +5,8 @@
 #include <server/connection.h>
 #include <server/error.h>
 
-HTTPServ::Connection::Connection(HTTPServ::Request *request, HTTPServ::Response *response) : request(request), response(response) {}
+HTTPServ::Connection::Connection(HTTPServ::Request *request, HTTPServ::Response *response) : request(request), response(response) {
+}
 
 HTTPServ::Connection::~Connection() {
     delete request;
@@ -26,9 +27,8 @@ void HTTPServ::Connection::parseRequestHeaders() {
         request->parseHeaders();
     } catch (HTTPError& e) {
         response->status(e.getCode())->end(e.getMessage());
-        // TODO - Logging here?
-        // TODO - Respond with http status code specified in e
+        return;
     }
 
-    response->status(200)->end("Hello World");
+    response->status(HTTP::STATUS::OK)->header("Content-type", "application/json")->end(R"({"hello": "world"})");
 }

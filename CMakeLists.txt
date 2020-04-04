@@ -24,11 +24,11 @@ add_library(httpserv
   src/server/http/request.cpp
   src/server/http/response.cpp
   include/server/error.h
-)
+  include/server/http.h src/server/http.cpp)
 
 add_executable(example
   example/src/example.cpp
-)
+  include/server/http.h)
 
 target_link_libraries(example
   httpserv

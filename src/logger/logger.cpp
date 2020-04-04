@@ -26,7 +26,7 @@ void HTTPServ::Logger::log(const char *msg, LOG_LEVEL level) {
         logStream << "(" << id << ") ";
     }
 
-    logStream << msg << endl;
+    logStream << msg << "\n";
 }
 
 void HTTPServ::Logger::warn(const char *msg) {

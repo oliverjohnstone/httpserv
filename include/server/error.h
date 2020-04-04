@@ -7,18 +7,19 @@
 
 #include <mach/mach_types.h>
 #include <string>
+#include "http.h"
 
 namespace HTTPServ {
     class HTTPError : public std::exception {
         private:
-            int code;
+            HTTP::STATUS code;
             std::string message;
 
-            HTTPError(int code, std::string& message) : code(code), message(message) {};
+            HTTPError(HTTP::STATUS code, std::string& message) : code(code), message(message) {};
 
         public:
 
-            [[nodiscard]] int getCode() const noexcept {
+            [[nodiscard]] HTTP::STATUS getCode() const noexcept {
                 return code;
             }
 
@@ -27,15 +28,15 @@ namespace HTTPServ {
             }
 
             static HTTPError BadRequest(std::string message = "Bad Request") {
-                return HTTPError(400, message);
+                return HTTPError(HTTP::STATUS::BAD_REQUEST, message);
             };
 
             static HTTPError ServerError(std::string message = "Server Error") {
-                return HTTPError(500, message);
+                return HTTPError(HTTP::STATUS::INTERNAL_SERVER_ERROR, message);
             };
 
             static HTTPError NotImplemented(std::string message = "Not Implemented") {
-                return HTTPError(501, message);
+                return HTTPError(HTTP::STATUS::NOT_IMPLEMENTED, message);
             };
     };
 }

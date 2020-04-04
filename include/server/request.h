@@ -30,12 +30,14 @@ namespace HTTPServ {
 
             void parseRequestLine();
             static void getLine(std::istream* is, std::string& out);
+            std::string getVerbAsString();
 
         public:
             Request(io::stream<InSocketStream>* stream, Logger& logger);
             virtual ~Request();
             void parseHeaders();
             Logger* log();
+            const std::string& getUri() const;
     };
 }
 

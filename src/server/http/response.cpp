@@ -20,20 +20,43 @@ void HTTPServ::Response::close() {
     stream->close();
 }
 
-HTTPServ::Response* HTTPServ::Response::status(int code) {
+HTTPServ::Response* HTTPServ::Response::status(HTTP::STATUS code) {
     statusCode = code;
+
+    auto text = HTTP::STATUS_TEXT[code];
+    if (!text) {
+        // TODO - Check this mapping?
+        // TODO - use defaults
+    }
+
     return this;
 }
 
 void HTTPServ::Response::sendHeaders() {
-    *stream <<
-        httpVersion << " " << statusCode << " OK\r\n"
-        << "Connection: Closed\r\n"
-        << "\r\n";
+    if (!headersSent) {
+        *stream << httpVersion << " " << statusCode << " " << HTTP::STATUS_TEXT[statusCode] << "\r\n";
+
+        for (auto [name, value] : headers) {
+            *stream << name << ": " << value << "\r\n";
+        }
+
+        *stream << "Connection: Closed\r\n" // TODO - Remove this once connections can remain open
+            << "\r\n";
+    }
+
+    headersSent = true;
 }
 
 HTTPServ::Response* HTTPServ::Response::end(const std::string &body) {
     sendHeaders();
     *stream << body;
+    return this;
+}
+
+HTTPServ::Response* HTTPServ::Response::header(const std::string& name, std::string value) {
+    if (headersSent) {
+        throw std::runtime_error("Headers already sent");
+    }
+    headers[name] = value;
     return this;
 }

@@ -25,7 +25,9 @@ HTTPServ::Request::Request(io::stream<InSocketStream> *stream, Logger &logger) :
 }
 
 HTTPServ::Request::~Request() {
-    logger->info("Request finished");
+    std::stringstream ss;
+    ss << "Finished " << getVerbAsString() << " " << getUri();
+    logger->info(ss.str().c_str());
 
     delete stream;
     delete logger; // New instance of logger as child
@@ -89,4 +91,20 @@ void HTTPServ::Request::getLine(std::istream* is, std::string& out) {
 
 HTTPServ::Logger* HTTPServ::Request::log() {
     return logger;
+}
+
+std::string HTTPServ::Request::getVerbAsString() {
+    switch (verb) {
+        case VERB::POST: return "POST";
+        case VERB::GET: return "GET";
+        case VERB::DELETE: return "DELETE";
+        case VERB::HEAD: return "HEAD";
+        case VERB::OPTIONS: return "OPTIONS";
+        case VERB::PUT: return "PUT";
+        default: return "INVALID";
+    }
+}
+
+const std::string& HTTPServ::Request::getUri() const {
+    return uri;
 }
