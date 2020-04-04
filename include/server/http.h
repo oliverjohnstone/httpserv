@@ -6,11 +6,22 @@
 #define HTTPSERV_HTTP_H
 
 #include <unordered_map>
+#include <string>
 
 namespace HTTPServ::HTTP {
 
     extern const char * VERSION_1_1;
     extern const char * VERSION_2;
+
+    enum VERB {
+        NONE,
+        GET,
+        POST,
+        PUT,
+        DELETE,
+        OPTIONS,
+        HEAD
+    };
 
     enum STATUS {
         OK = 200,
@@ -68,6 +79,8 @@ namespace HTTPServ::HTTP {
     };
 
     extern std::unordered_map<STATUS, const char *> STATUS_TEXT;
+    extern std::unordered_map<std::string, HTTPServ::HTTP::VERB> VERB_MAP;
+    extern std::unordered_map<HTTPServ::HTTP::VERB, const char *> VERB_TEXT;
 }
 
 #endif //HTTPSERV_HTTP_H

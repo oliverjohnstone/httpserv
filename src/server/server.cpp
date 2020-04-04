@@ -63,7 +63,5 @@ void HTTPServ::Server::stop() {
 
 void HTTPServ::Server::handle_request(HTTPServ::Connection *conn) {
     conn->parseRequestHeaders();
-
-    conn->finish();
     delete conn;
 }

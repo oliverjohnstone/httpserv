@@ -8,6 +8,24 @@ namespace HTTPServ::HTTP {
     const char * VERSION_1_1 = "HTTP/1.1";
     const char * VERSION_2 = "HTTP/2.0";
 
+    std::unordered_map<std::string, HTTPServ::HTTP::VERB> VERB_MAP = {
+        {"GET", HTTPServ::HTTP::VERB::GET},
+        {"POST", HTTPServ::HTTP::VERB::POST},
+        {"PUT", HTTPServ::HTTP::VERB::PUT},
+        {"DELETE", HTTPServ::HTTP::VERB::DELETE},
+        {"OPTIONS", HTTPServ::HTTP::VERB::OPTIONS},
+        {"HEAD", HTTPServ::HTTP::VERB::HEAD},
+    };
+
+    std::unordered_map<HTTPServ::HTTP::VERB, const char *> VERB_TEXT = {
+        {HTTPServ::HTTP::VERB::GET, "GET"},
+        {HTTPServ::HTTP::VERB::POST, "POST"},
+        {HTTPServ::HTTP::VERB::PUT, "PUT"},
+        {HTTPServ::HTTP::VERB::DELETE, "DELETE"},
+        {HTTPServ::HTTP::VERB::OPTIONS, "OPTIONS"},
+        {HTTPServ::HTTP::VERB::HEAD, "HEAD"},
+    };
+
     std::unordered_map<STATUS, const char *> STATUS_TEXT = {
         {STATUS::OK, "OK"},
         {STATUS::CREATED, "Created"},

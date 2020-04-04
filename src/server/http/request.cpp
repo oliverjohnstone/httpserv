@@ -6,15 +6,6 @@
 #include <boost/algorithm/string.hpp>
 #include <server/error.h>
 
-std::map<std::string, HTTPServ::VERB> verbMap = {
-    {"GET", HTTPServ::VERB::GET},
-    {"POST", HTTPServ::VERB::POST},
-    {"PUT", HTTPServ::VERB::PUT},
-    {"DELETE", HTTPServ::VERB::DELETE},
-    {"OPTIONS", HTTPServ::VERB::OPTIONS},
-    {"HEAD", HTTPServ::VERB::HEAD},
-};
-
 HTTPServ::Request::Request(io::stream<InSocketStream> *stream, Logger &logger) : stream(stream) {
     boost::uuids::random_generator generateId;
     id = generateId();
@@ -53,11 +44,11 @@ void HTTPServ::Request::parseRequestLine() {
     boost::algorithm::trim(split[2]);
     boost::algorithm::to_upper(split[0]);
 
-    verb = verbMap[split[0]];
+    verb = HTTP::VERB_MAP[split[0]];
     uri = split[1];
     httpVersion = split[2];
 
-    if (verb == VERB::NONE) {
+    if (verb == HTTP::VERB::NONE) {
         throw HTTPError::NotImplemented();
     }
 }
@@ -94,15 +85,8 @@ HTTPServ::Logger* HTTPServ::Request::log() {
 }
 
 std::string HTTPServ::Request::getVerbAsString() {
-    switch (verb) {
-        case VERB::POST: return "POST";
-        case VERB::GET: return "GET";
-        case VERB::DELETE: return "DELETE";
-        case VERB::HEAD: return "HEAD";
-        case VERB::OPTIONS: return "OPTIONS";
-        case VERB::PUT: return "PUT";
-        default: return "INVALID";
-    }
+    auto str = HTTP::VERB_TEXT[verb];
+    return str ?: "INVALID";
 }
 
 const std::string& HTTPServ::Request::getUri() const {

@@ -9,17 +9,13 @@ HTTPServ::Connection::Connection(HTTPServ::Request *request, HTTPServ::Response 
 }
 
 HTTPServ::Connection::~Connection() {
+    response->close();
     delete request;
     delete response;
 }
 
-void HTTPServ::Connection::finish() {
-    response->close();
-}
-
 void HTTPServ::Connection::reject() {
-    // TODO - Respond with some sensible http status code
-    finish();
+    response->status(HTTP::STATUS::SERVICE_UNAVAILABLE)->end("Server Unavailable");
 }
 
 void HTTPServ::Connection::parseRequestHeaders() {

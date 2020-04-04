@@ -12,17 +12,16 @@
 #include <map>
 #include <logger/logger.h>
 #include "stream.h"
+#include "http.h"
 
 namespace io = boost::iostreams;
 
 namespace HTTPServ {
-    enum VERB {NONE, GET, POST, PUT, DELETE, OPTIONS, HEAD};
-
     class Request {
         private:
             io::stream<InSocketStream> *stream;
             std::map<std::string, std::string> headers;
-            VERB verb = NONE;
+            HTTP::VERB verb = HTTP::VERB::NONE;
             std::string uri;
             std::string httpVersion;
             Logger* logger;

@@ -17,10 +17,8 @@ namespace HTTPServ {
         public:
             Connection(Request *request, Response *response);
             virtual ~Connection();
-            void finish();
             void reject();
-
-        void parseRequestHeaders();
+            void parseRequestHeaders();
     };
 }
 

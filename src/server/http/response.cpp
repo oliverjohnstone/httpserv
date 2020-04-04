@@ -22,13 +22,6 @@ void HTTPServ::Response::close() {
 
 HTTPServ::Response* HTTPServ::Response::status(HTTP::STATUS code) {
     statusCode = code;
-
-    auto text = HTTP::STATUS_TEXT[code];
-    if (!text) {
-        // TODO - Check this mapping?
-        // TODO - use defaults
-    }
-
     return this;
 }
 
