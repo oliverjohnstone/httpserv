@@ -39,6 +39,8 @@ int HTTPServ::Server::run_async() {
             auto conn = new Connection(new Request(in, logger), new Response(out));
 
             if (running) {
+                // TODO - Remove from connection handlers once finished
+                // TODO - This will probably be more efficient with a threadpool
                 connectionHandlers.push_back(async(&Server::handle_request, this, conn));
             } else {
                 conn->reject();

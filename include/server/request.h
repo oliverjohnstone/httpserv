@@ -23,7 +23,7 @@ namespace HTTPServ {
             std::map<std::string, std::string> headers;
             HTTP::VERB verb = HTTP::VERB::NONE;
             std::string uri;
-            std::string httpVersion;
+            const char * httpVersion;
             Logger* logger;
             boost::uuids::uuid id;
 
@@ -37,6 +37,7 @@ namespace HTTPServ {
             void parseHeaders();
             Logger* log();
             const std::string& getUri() const;
+            const char *getHTTPVersion();
     };
 }
 

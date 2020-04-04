@@ -7,6 +7,7 @@
 namespace HTTPServ::HTTP {
     const char * VERSION_1_1 = "HTTP/1.1";
     const char * VERSION_2 = "HTTP/2.0";
+    const char * PROTO_ENDL = "\r\n";
 
     std::unordered_map<std::string, HTTPServ::HTTP::VERB> VERB_MAP = {
         {"GET", HTTPServ::HTTP::VERB::GET},

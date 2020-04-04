@@ -21,6 +21,7 @@ void HTTPServ::Connection::reject() {
 void HTTPServ::Connection::parseRequestHeaders() {
     try {
         request->parseHeaders();
+        response->syncWith(request);
     } catch (HTTPError& e) {
         response->status(e.getCode())->end(e.getMessage());
         return;

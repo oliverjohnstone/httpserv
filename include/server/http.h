@@ -12,6 +12,7 @@ namespace HTTPServ::HTTP {
 
     extern const char * VERSION_1_1;
     extern const char * VERSION_2;
+    extern const char * PROTO_ENDL;
 
     enum VERB {
         NONE,

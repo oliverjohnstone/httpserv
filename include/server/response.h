@@ -9,6 +9,7 @@
 #include <map>
 #include "stream.h"
 #include "http.h"
+#include "request.h"
 
 namespace io = boost::iostreams;
 
@@ -19,7 +20,7 @@ namespace HTTPServ {
             std::map<std::string, std::string> headers;
             bool headersSent = false;
             HTTP::STATUS statusCode = HTTP::STATUS::OK;
-            const char * httpVersion =  HTTP::VERSION_1_1; // TODO - Put a valid version here, parsed from request?
+            const char * httpVersion;
 
             void sendHeaders();
 
@@ -28,6 +29,7 @@ namespace HTTPServ {
             virtual ~Response();
             void flush();
             void close();
+            void syncWith(HTTPServ::Request *request);
 
             HTTPServ::Response* status(HTTPServ::HTTP::STATUS code);
             HTTPServ::Response* end(const std::string &body = "");

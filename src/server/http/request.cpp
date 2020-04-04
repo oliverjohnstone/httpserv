@@ -46,7 +46,7 @@ void HTTPServ::Request::parseRequestLine() {
 
     verb = HTTP::VERB_MAP[split[0]];
     uri = split[1];
-    httpVersion = split[2];
+    httpVersion = split[2] == HTTP::VERSION_2 ? HTTP::VERSION_2 : HTTP::VERSION_1_1;
 
     if (verb == HTTP::VERB::NONE) {
         throw HTTPError::NotImplemented();
@@ -91,4 +91,8 @@ std::string HTTPServ::Request::getVerbAsString() {
 
 const std::string& HTTPServ::Request::getUri() const {
     return uri;
+}
+
+const char *HTTPServ::Request::getHTTPVersion() {
+    return httpVersion;
 }

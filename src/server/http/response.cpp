@@ -27,14 +27,14 @@ HTTPServ::Response* HTTPServ::Response::status(HTTP::STATUS code) {
 
 void HTTPServ::Response::sendHeaders() {
     if (!headersSent) {
-        *stream << httpVersion << " " << statusCode << " " << HTTP::STATUS_TEXT[statusCode] << "\r\n";
+        *stream << httpVersion << " " << statusCode << " " << HTTP::STATUS_TEXT[statusCode] << HTTP::PROTO_ENDL;
 
         for (auto [name, value] : headers) {
-            *stream << name << ": " << value << "\r\n";
+            *stream << name << ": " << value << HTTP::PROTO_ENDL;
         }
 
-        *stream << "Connection: Closed\r\n" // TODO - Remove this once connections can remain open
-            << "\r\n";
+        *stream << "Connection: Closed" << HTTP::PROTO_ENDL // TODO - Remove this once connections can remain open
+            << HTTP::PROTO_ENDL;
     }
 
     headersSent = true;
@@ -52,4 +52,9 @@ HTTPServ::Response* HTTPServ::Response::header(const std::string& name, std::str
     }
     headers[name] = value;
     return this;
+}
+
+void HTTPServ::Response::syncWith(HTTPServ::Request *request) {
+    httpVersion = request->getHTTPVersion();
+    // TODO - Sync should close connections etc
 }
