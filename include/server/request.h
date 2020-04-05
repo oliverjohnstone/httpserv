@@ -36,8 +36,9 @@ namespace HTTPServ {
             virtual ~Request();
             void parseHeaders();
             Logger* log();
-            const std::string& getUri() const;
+            std::string& getUri();
             const char *getHTTPVersion();
+            HTTP::VERB getVerb();
     };
 }
 

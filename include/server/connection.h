@@ -19,6 +19,8 @@ namespace HTTPServ {
             virtual ~Connection();
             void reject();
             void parseRequestHeaders();
+            Request *getRequest() const;
+            Response *getResponse() const;
     };
 }
 

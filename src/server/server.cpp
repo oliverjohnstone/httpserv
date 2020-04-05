@@ -65,5 +65,21 @@ void HTTPServ::Server::stop() {
 
 void HTTPServ::Server::handle_request(HTTPServ::Connection *conn) {
     conn->parseRequestHeaders();
+
+    // TODO - Do any more pre request handling processing here
+
+    auto req = conn->getRequest();
+    auto res = conn->getResponse();
+
+    for (auto router : routers) {
+        // TODO - try/catch and throw server error
+        router->getHandler(req->getVerb(), req->getUri())(req, res);
+    }
+
     delete conn;
+}
+
+HTTPServ::Server* HTTPServ::Server::attachRoutes(HTTPServ::Router *router) {
+    routers.push_back(router);
+    return this;
 }

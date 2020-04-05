@@ -10,26 +10,31 @@
 #include <server/response.h>
 
 namespace HTTPServ {
-    typedef std::function<void(Request *, Response *)> RouteHandler;
+    typedef std::function<void(Request *, Response *)> Route;
 
-    template <typename HandlerT>
     class Router {
         private:
             typedef struct {
                 const char *path; // TODO - Replace with regex handlers
                 HTTP::VERB verb;
             } HandlerDescription;
-            typedef std::vector<std::pair<HandlerDescription, std::vector<HandlerT>>> HandlerCollection;
+            typedef std::vector<std::pair<HandlerDescription, std::vector<Route>>> Handles;
+            typedef std::vector<Route> FilteredHandles;
 
-            HandlerCollection useHandlers;
-            HandlerCollection handlers;
+            Handles useHandlers;
+            Handles handlers;
 
-            void handle(std::vector<HandlerT> *useChain, std::vector<HandlerT> *verbChain, Request *req, Response *res);
+            void handle(FilteredHandles* useChain, FilteredHandles* verbChain, Request *req, Response *res);
 
         public:
             Router();
-            Router* use(const char *path, HandlerT handler);
-            RouteHandler getHandler(HTTPServ::HTTP::VERB verb, std::string &path);
+            Router* use(const char *path, Route handler);
+            Route getHandler(HTTPServ::HTTP::VERB verb, std::string &path);
+
+            template<class FnPtr, class ClassT>
+            static Route boundHandler(FnPtr fnPtr, ClassT &instance) {
+                return std::bind(fnPtr, instance, std::placeholders::_1, std::placeholders::_2);
+            }
     };
 }
 

@@ -7,20 +7,35 @@
 #include <router/router.h>
 #include <iostream>
 
-int main() {
-    HTTPServ::Logger logger(std::cout);
-    HTTPServ::Server server(8080, logger);
-    HTTPServ::Router<HTTPServ::RouteHandler> router;
+using namespace HTTPServ;
 
-    router.use("/test", [](HTTPServ::Request *req, HTTPServ::Response *res){
-        std::cout << "Test route" << std::endl;
+class Test {
+    public:
+        void test(Request *req, Response *res) {
+            res
+                ->status(HTTP::STATUS::OK)
+                ->header("Content-type", "application/json")
+                ->end(R"({"hello": "world2"})");
+        }
+};
+
+int main() {
+    Logger logger(std::cout);
+    Server server(8080, logger);
+    Router router;
+
+    server.attachRoutes(&router);
+
+    const Test testClass;
+
+    router.use("/test", [](Request *req, Response *res){
+        res
+            ->status(HTTP::STATUS::OK)
+            ->header("Content-type", "application/json")
+            ->end(R"({"hello": "world1"})");
     });
 
-    std::string test = "/test";
-    std::string test2 = "/test2";
-
-    router.getHandler(HTTPServ::HTTP::VERB::NONE, test)(nullptr, nullptr);
-    router.getHandler(HTTPServ::HTTP::VERB::NONE, test2)(nullptr, nullptr);
+    router.use("/test2", Router::boundHandler(&Test::test, testClass));
 
     return server.run();
 }

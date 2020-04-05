@@ -26,6 +26,12 @@ void HTTPServ::Connection::parseRequestHeaders() {
         response->status(e.getCode())->end(e.getMessage());
         return;
     }
+}
 
-    response->status(HTTP::STATUS::OK)->header("Content-type", "application/json")->end(R"({"hello": "world"})");
+HTTPServ::Request *HTTPServ::Connection::getRequest() const {
+    return request;
+}
+
+HTTPServ::Response *HTTPServ::Connection::getResponse() const {
+    return response;
 }

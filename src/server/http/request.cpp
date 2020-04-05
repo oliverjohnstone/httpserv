@@ -89,10 +89,14 @@ std::string HTTPServ::Request::getVerbAsString() {
     return str ?: "INVALID";
 }
 
-const std::string& HTTPServ::Request::getUri() const {
+std::string& HTTPServ::Request::getUri() {
     return uri;
 }
 
 const char *HTTPServ::Request::getHTTPVersion() {
     return httpVersion;
+}
+
+HTTPServ::HTTP::VERB HTTPServ::Request::getVerb() {
+    return verb;
 }

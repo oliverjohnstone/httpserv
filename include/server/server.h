@@ -10,6 +10,7 @@
 #include <server/connection.h>
 #include <future>
 #include <vector>
+#include <router/router.h>
 
 namespace HTTPServ {
     class Server {
@@ -19,6 +20,7 @@ namespace HTTPServ {
             ServerSocket* socket;
             std::atomic_bool running;
             std::vector<std::future<void>> connectionHandlers;
+            std::vector<HTTPServ::Router*> routers;
 
             int run_async();
             void handle_request(Connection *conn);
@@ -28,6 +30,8 @@ namespace HTTPServ {
             virtual ~Server();
             int run();
             void stop();
+
+            Server* attachRoutes(HTTPServ::Router* router);
     };
 }
 
