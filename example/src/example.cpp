@@ -12,10 +12,8 @@ using namespace HTTPServ;
 class Test {
     public:
         void test(Request *req, Response *res) {
-            res
-                ->status(HTTP::STATUS::OK)
-                ->header("Content-type", "application/json")
-                ->end(R"({"hello": "world2"})");
+            res->header("test-header", "hello");
+            std::cout << req->getContext()["test"]["test"].get<std::string>() << std::endl;
         }
 };
 
@@ -24,18 +22,30 @@ int main() {
     Server server(8080, logger);
     Router router;
 
-    server.attachRoutes(&router);
+    server.attachRouter(&router);
 
     const Test testClass;
 
-    router.use("/test", [](Request *req, Response *res){
-        res
-            ->status(HTTP::STATUS::OK)
-            ->header("Content-type", "application/json")
-            ->end(R"({"hello": "world1"})");
+    router.use("/test",
+        [](Request *req, Response *res){
+            req->getContext()["test"]["test"] = "Hi There";
+
+            res
+                ->status(HTTP::STATUS::OK)
+                ->header("Content-type", "application/json");
+        },
+        Router::boundHandler(&Test::test, testClass)
+    );
+
+    router.get("/test", [](Request *req, Response *res){
+        std::cout << "GET /test" << std::endl;
+        res->end(R"({"hello": "GET"})");
     });
 
-    router.use("/test2", Router::boundHandler(&Test::test, testClass));
+    router.post("/test", [](Request *req, Response *res){
+        std::cout << "POST /test" << std::endl;
+        res->end(R"({"hello": "POST"})");
+    });
 
     return server.run();
 }

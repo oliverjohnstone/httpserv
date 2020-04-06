@@ -100,3 +100,7 @@ const char *HTTPServ::Request::getHTTPVersion() {
 HTTPServ::HTTP::VERB HTTPServ::Request::getVerb() {
     return verb;
 }
+
+json& HTTPServ::Request::getContext() {
+    return context;
+}

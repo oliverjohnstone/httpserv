@@ -18,17 +18,75 @@ namespace HTTPServ {
                 const char *path; // TODO - Replace with regex handlers
                 HTTP::VERB verb;
             } HandlerDescription;
-            typedef std::vector<std::pair<HandlerDescription, std::vector<Route>>> Handles;
             typedef std::vector<Route> FilteredHandles;
+            typedef std::vector<std::pair<HandlerDescription, FilteredHandles>> Handles;
 
             Handles useHandlers;
             Handles handlers;
 
             void handle(FilteredHandles* useChain, FilteredHandles* verbChain, Request *req, Response *res);
+            Router* use(const char *path, FilteredHandles &handleChain);
+            Router* verb(const char *path, HTTP::VERB verb, FilteredHandles &handleChain);
 
         public:
             Router();
-            Router* use(const char *path, Route handler);
+
+            template<typename... Handlers>
+            Router* use(const char *path, Handlers&&... handlerArgs) {
+                FilteredHandles handlerFns;
+                (handlerFns.push_back(handlerArgs), ...);
+                return use(path, handlerFns);
+            }
+
+            template<typename... Handlers>
+            Router* get(const char *path, Handlers&&... handlerArgs) {
+                FilteredHandles handlerFns;
+                (handlerFns.push_back(handlerArgs), ...);
+                return verb(path, HTTP::VERB::GET, handlerFns);
+            }
+
+            template<typename... Handlers>
+            Router* post(const char *path, Handlers&&... handlerArgs) {
+                FilteredHandles handlerFns;
+                (handlerFns.push_back(handlerArgs), ...);
+                return verb(path, HTTP::VERB::POST, handlerFns);
+            }
+
+            template<typename... Handlers>
+            Router* put(const char *path, Handlers&&... handlerArgs) {
+                FilteredHandles handlerFns;
+                (handlerFns.push_back(handlerArgs), ...);
+                return verb(path, HTTP::VERB::PUT, handlerFns);
+            }
+
+            template<typename... Handlers>
+            Router* del(const char *path, Handlers&&... handlerArgs) {
+                FilteredHandles handlerFns;
+                (handlerFns.push_back(handlerArgs), ...);
+                return verb(path, HTTP::VERB::DELETE, handlerFns);
+            }
+
+            template<typename... Handlers>
+            Router* options(const char *path, Handlers&&... handlerArgs) {
+                FilteredHandles handlerFns;
+                (handlerFns.push_back(handlerArgs), ...);
+                return verb(path, HTTP::VERB::OPTIONS, handlerFns);
+            }
+
+            template<typename... Handlers>
+            Router* head(const char *path, Handlers&&... handlerArgs) {
+                FilteredHandles handlerFns;
+                (handlerFns.push_back(handlerArgs), ...);
+                return verb(path, HTTP::VERB::HEAD, handlerFns);
+            }
+
+            template<typename... Handlers>
+            Router* patch(const char *path, Handlers&&... handlerArgs) {
+                FilteredHandles handlerFns;
+                (handlerFns.push_back(handlerArgs), ...);
+                return verb(path, HTTP::VERB::PATCH, handlerFns);
+            }
+
             Route getHandler(HTTPServ::HTTP::VERB verb, std::string &path);
 
             template<class FnPtr, class ClassT>

@@ -11,8 +11,11 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <map>
 #include <logger/logger.h>
+#include <nlohmann/json.hpp>
 #include "stream.h"
 #include "http.h"
+
+using json = nlohmann::json;
 
 namespace io = boost::iostreams;
 
@@ -26,6 +29,7 @@ namespace HTTPServ {
             const char * httpVersion;
             Logger* logger;
             boost::uuids::uuid id;
+            json context;
 
             void parseRequestLine();
             static void getLine(std::istream* is, std::string& out);
@@ -39,6 +43,7 @@ namespace HTTPServ {
             std::string& getUri();
             const char *getHTTPVersion();
             HTTP::VERB getVerb();
+            json& getContext();
     };
 }
 

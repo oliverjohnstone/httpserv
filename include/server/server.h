@@ -31,7 +31,7 @@ namespace HTTPServ {
             int run();
             void stop();
 
-            Server* attachRoutes(HTTPServ::Router* router);
+            Server* attachRouter(HTTPServ::Router* router);
     };
 }
 

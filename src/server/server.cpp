@@ -25,7 +25,22 @@ int HTTPServ::Server::run() {
 
     logger.info(("Started on http://localhost:" + to_string(port)).c_str());
 
-    // TODO - Do any server processing / clean up etc here
+    auto isFinished = [](std::future<void> &conn){
+        std::chrono::milliseconds timeout(100);
+        return conn.wait_for(timeout) == std::future_status::ready;
+    };
+
+    while (running) {
+        connectionHandlers.erase(
+                std::remove_if(connectionHandlers.begin(),connectionHandlers.end(), isFinished),
+                connectionHandlers.end()
+        );
+
+        // TODO - Support timeout etc
+        // TODO - Do any server processing / clean up etc here
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
 
     return futureResult.get();
 }
@@ -39,9 +54,8 @@ int HTTPServ::Server::run_async() {
             auto conn = new Connection(new Request(in, logger), new Response(out));
 
             if (running) {
-                // TODO - Remove from connection handlers once finished
-                // TODO - This will probably be more efficient with a threadpool
                 connectionHandlers.push_back(async(&Server::handle_request, this, conn));
+                std::cout << connectionHandlers.size() << std::endl;
             } else {
                 conn->reject();
                 delete conn;
@@ -79,7 +93,7 @@ void HTTPServ::Server::handle_request(HTTPServ::Connection *conn) {
     delete conn;
 }
 
-HTTPServ::Server* HTTPServ::Server::attachRoutes(HTTPServ::Router *router) {
+HTTPServ::Server* HTTPServ::Server::attachRouter(HTTPServ::Router *router) {
     routers.push_back(router);
     return this;
 }

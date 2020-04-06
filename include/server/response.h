@@ -7,11 +7,13 @@
 
 #include <boost/iostreams/stream.hpp>
 #include <map>
+#include <nlohmann/json.hpp>
 #include "stream.h"
 #include "http.h"
 #include "request.h"
 
 namespace io = boost::iostreams;
+using json = nlohmann::json;
 
 namespace HTTPServ {
     class Response {

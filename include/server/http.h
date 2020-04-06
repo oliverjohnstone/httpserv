@@ -21,7 +21,8 @@ namespace HTTPServ::HTTP {
         PUT,
         DELETE,
         OPTIONS,
-        HEAD
+        HEAD,
+        PATCH
     };
 
     enum STATUS {

@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(BOOST_ROOT /usr/local/boost_1_72_0)
 
 find_package(Boost)
+find_package(nlohmann_json 3.2.0 REQUIRED)
 
 if(NOT Boost_FOUND)
   message(FATAL_ERROR "Could not find boost!")
@@ -37,4 +38,6 @@ target_link_libraries(example
 )
 
 target_link_libraries(httpserv
-  ${Boost_LIBRARIES})
+  ${Boost_LIBRARIES}
+  nlohmann_json::nlohmann_json
+)

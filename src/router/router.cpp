@@ -6,11 +6,6 @@
 
 HTTPServ::Router::Router() {}
 
-HTTPServ::Router* HTTPServ::Router::use(const char *path, Route handler) {
-    useHandlers.push_back({{.path = path}, {handler}});
-    return this;
-}
-
 HTTPServ::Route HTTPServ::Router::getHandler(HTTPServ::HTTP::VERB verb, std::string &path) {
     auto routeMatches = [verb, path](HandlerDescription &handlerDescription) -> bool {
         auto pathMatches = handlerDescription.path == path;
@@ -46,4 +41,14 @@ void HTTPServ::Router::handle(FilteredHandles* useChain, FilteredHandles* verbCh
             handler(req, res);
         }
     }
+}
+
+HTTPServ::Router* HTTPServ::Router::use(const char *path, FilteredHandles &handleChain) {
+    useHandlers.push_back({{.path = path}, handleChain});
+    return this;
+}
+
+HTTPServ::Router* HTTPServ::Router::verb(const char *path, HTTPServ::HTTP::VERB verb, HTTPServ::Router::FilteredHandles &handleChain) {
+    handlers.push_back({{.path = path, .verb = verb}, handleChain});
+    return this;
 }
