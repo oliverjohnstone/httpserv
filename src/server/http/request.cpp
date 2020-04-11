@@ -6,7 +6,7 @@
 #include <boost/algorithm/string.hpp>
 #include <server/error.h>
 
-HTTPServ::Request::Request(io::stream<InSocketStream> *stream, Logger &logger) : stream(stream) {
+HTTPServ::Request::Request(io::stream<InSocketStream> *stream, Logger &logger) : stream(stream), args(nullptr) {
     boost::uuids::random_generator generateId;
     id = generateId();
     std::string uuidStr = boost::uuids::to_string(id);
@@ -22,6 +22,7 @@ HTTPServ::Request::~Request() {
 
     delete stream;
     delete logger; // New instance of logger as child
+    delete args;
 }
 
 void HTTPServ::Request::parseRequestLine() {
@@ -103,4 +104,26 @@ HTTPServ::HTTP::VERB HTTPServ::Request::getVerb() {
 
 json& HTTPServ::Request::getContext() {
     return context;
+}
+
+void HTTPServ::Request::setArgs(PathMatcher::ArgResults* reqArgs) {
+    args = reqArgs;
+}
+
+std::string HTTPServ::Request::getArg(const std::string& name) const {
+    auto str = args->at(name);
+
+    if (str.empty()) {
+        std::stringstream ss;
+        ss << "There is no argument provided for: " << name << ".";
+        throw std::invalid_argument(ss.str());
+    }
+
+    return str;
+}
+
+std::string HTTPServ::Request::getArg(int index) const {
+    std::stringstream ss;
+    ss << "captureGroup_" << index;
+    return getArg(ss.str());
 }

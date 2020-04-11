@@ -2,10 +2,14 @@ cmake_minimum_required(VERSION 3.15)
 project(httpserv)
 
 set(CMAKE_CXX_STANDARD 17)
-set(BOOST_ROOT /usr/local/boost_1_72_0)
+set(BOOST_ROOT ~/boost-lib)
 
-find_package(Boost)
+find_package(Boost  1.72.0 COMPONENTS regex)
 find_package(nlohmann_json 3.2.0 REQUIRED)
+
+link_directories(
+  lib/path_matcher
+)
 
 if(NOT Boost_FOUND)
   message(FATAL_ERROR "Could not find boost!")
@@ -13,7 +17,8 @@ endif()
 
 include_directories(
   include
-  /usr/local/boost_1_72_0
+  ~/boost-lib/include
+  lib
 )
 
 add_library(httpserv
@@ -40,4 +45,5 @@ target_link_libraries(example
 target_link_libraries(httpserv
   ${Boost_LIBRARIES}
   nlohmann_json::nlohmann_json
+  path_matcher
 )

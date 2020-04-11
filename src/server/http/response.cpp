@@ -4,6 +4,7 @@
 
 #include <server/response.h>
 #include <sstream>
+#include <boost/algorithm/string.hpp>
 
 HTTPServ::Response::Response(io::stream<OutSocketStream> *stream) : stream(stream) {}
 
@@ -46,11 +47,19 @@ HTTPServ::Response* HTTPServ::Response::end(const std::string &body) {
     return this;
 }
 
+HTTPServ::Response* HTTPServ::Response::end(const json& body) {
+    return header("Content-Type", "application/json")->end(body.dump());
+}
+
+HTTPServ::Response* HTTPServ::Response::end(const char * body) {
+    return end(std::string(body));
+}
+
 HTTPServ::Response* HTTPServ::Response::header(const std::string& name, std::string value) {
     if (headersSent) {
         throw std::runtime_error("Headers already sent");
     }
-    headers[name] = value;
+    headers[boost::algorithm::to_lower_copy(name)] = value;
     return this;
 }
 

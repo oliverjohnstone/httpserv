@@ -8,14 +8,7 @@
 #include <iostream>
 
 using namespace HTTPServ;
-
-class Test {
-    public:
-        void test(Request *req, Response *res) {
-            res->header("test-header", "hello");
-            std::cout << req->getContext()["test"]["test"].get<std::string>() << std::endl;
-        }
-};
+using namespace nlohmann;
 
 int main() {
     Logger logger(std::cout);
@@ -24,28 +17,17 @@ int main() {
 
     server.attachRouter(&router);
 
-    const Test testClass;
-
-    router.use("/test",
-        [](Request *req, Response *res){
-            req->getContext()["test"]["test"] = "Hi There";
-
+    router.get("/test/:arg1/:arg2",
+        [](Request *req, Response *res) {
             res
-                ->status(HTTP::STATUS::OK)
-                ->header("Content-type", "application/json");
-        },
-        Router::boundHandler(&Test::test, testClass)
+            ->end(json({
+                "args", {
+                    req->getArg("arg1"),
+                    req->getArg("arg2")
+                }
+            }));
+        }
     );
-
-    router.get("/test", [](Request *req, Response *res){
-        std::cout << "GET /test" << std::endl;
-        res->end(R"({"hello": "GET"})");
-    });
-
-    router.post("/test", [](Request *req, Response *res){
-        std::cout << "POST /test" << std::endl;
-        res->end(R"({"hello": "POST"})");
-    });
 
     return server.run();
 }

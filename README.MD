@@ -8,3 +8,4 @@ See example app for usage.
 
 * [Boost](https://www.boost.org/)
 * [nlohmann/json](https://github.com/nlohmann/json)
+* [path-matcher](https://github.com/oliverjohnstone/path-matcher)

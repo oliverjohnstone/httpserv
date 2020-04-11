@@ -8,6 +8,7 @@
 #include <string>
 #include <server/request.h>
 #include <server/response.h>
+#include <path_matcher/path_matcher.h>
 
 namespace HTTPServ {
     typedef std::function<void(Request *, Response *)> Route;
@@ -15,7 +16,7 @@ namespace HTTPServ {
     class Router {
         private:
             typedef struct {
-                const char *path; // TODO - Replace with regex handlers
+                PathMatcher::Matcher *path;
                 HTTP::VERB verb;
             } HandlerDescription;
             typedef std::vector<Route> FilteredHandles;
@@ -24,14 +25,16 @@ namespace HTTPServ {
             Handles useHandlers;
             Handles handlers;
 
-            void handle(FilteredHandles* useChain, FilteredHandles* verbChain, Request *req, Response *res);
+            void handle(FilteredHandles* useChain, FilteredHandles* verbChain, PathMatcher::ArgResults* args, Request *req, Response *res);
             Router* use(const char *path, FilteredHandles &handleChain);
             Router* verb(const char *path, HTTP::VERB verb, FilteredHandles &handleChain);
 
         public:
             Router();
 
-            template<typename... Handlers>
+        virtual ~Router();
+
+        template<typename... Handlers>
             Router* use(const char *path, Handlers&&... handlerArgs) {
                 FilteredHandles handlerFns;
                 (handlerFns.push_back(handlerArgs), ...);

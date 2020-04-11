@@ -12,6 +12,7 @@
 #include <map>
 #include <logger/logger.h>
 #include <nlohmann/json.hpp>
+#include <path_matcher/path_matcher.h>
 #include "stream.h"
 #include "http.h"
 
@@ -30,6 +31,7 @@ namespace HTTPServ {
             Logger* logger;
             boost::uuids::uuid id;
             json context;
+            PathMatcher::ArgResults* args;
 
             void parseRequestLine();
             static void getLine(std::istream* is, std::string& out);
@@ -44,6 +46,9 @@ namespace HTTPServ {
             const char *getHTTPVersion();
             HTTP::VERB getVerb();
             json& getContext();
+            void setArgs(PathMatcher::ArgResults* reqArgs);
+            std::string getArg(const std::string& name) const;
+            std::string getArg(int index) const;
     };
 }
 

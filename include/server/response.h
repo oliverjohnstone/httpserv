@@ -19,7 +19,7 @@ namespace HTTPServ {
     class Response {
         private:
             io::stream<OutSocketStream> *stream;
-            std::map<std::string, std::string> headers;
+            std::unordered_map<std::string, std::string> headers;
             bool headersSent = false;
             HTTP::STATUS statusCode = HTTP::STATUS::OK;
             const char * httpVersion;
@@ -34,7 +34,9 @@ namespace HTTPServ {
             void syncWith(HTTPServ::Request *request);
 
             HTTPServ::Response* status(HTTPServ::HTTP::STATUS code);
-            HTTPServ::Response* end(const std::string &body = "");
+            HTTPServ::Response* end(const std::string& body = "");
+            HTTPServ::Response* end(const char * body);
+            HTTPServ::Response* end(const json& body);
             HTTPServ::Response* header(const std::string& name, std::string value);
     };
 }
