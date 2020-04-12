@@ -6,7 +6,9 @@
 
 HTTPServ::Router::Router() {}
 
-HTTPServ::Route HTTPServ::Router::getHandler(HTTPServ::HTTP::VERB verb, std::string &path) {
+std::function<bool(HTTPServ::Request *, HTTPServ::Response *)> HTTPServ::Router::getHandler(
+        HTTPServ::HTTP::VERB verb, std::string &path) {
+
     auto args = new PathMatcher::ArgResults;
 
     auto routeMatches = [verb, path, args](HandlerDescription &handlerDescription) -> bool {
@@ -38,9 +40,10 @@ HTTPServ::Route HTTPServ::Router::getHandler(HTTPServ::HTTP::VERB verb, std::str
     );
 }
 
-void HTTPServ::Router::handle(FilteredHandles* useChain, FilteredHandles* verbChain, PathMatcher::ArgResults* args,
-        HTTPServ::Request *req, HTTPServ::Response *res) {
+bool HTTPServ::Router::handle(FilteredHandles* useChain, FilteredHandles* verbChain, PathMatcher::ArgResults* args,
+                              HTTPServ::Request *req, HTTPServ::Response *res) {
 
+    auto matched = false;
     req->setArgs(args);
 
     for (auto chain : {useChain, verbChain}) {
@@ -48,12 +51,16 @@ void HTTPServ::Router::handle(FilteredHandles* useChain, FilteredHandles* verbCh
             continue;
         }
 
-        // TODO - Error handling etc
+        if (chain->size()) {
+            matched = true;
+        }
 
         for (auto&& handler : *chain) {
             handler(req, res);
         }
     }
+
+    return matched;
 }
 
 HTTPServ::Router* HTTPServ::Router::use(const char *path, FilteredHandles &handleChain) {

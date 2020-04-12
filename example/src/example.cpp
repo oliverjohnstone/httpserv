@@ -5,7 +5,6 @@
 #include <server/server.h>
 #include <logger/logger.h>
 #include <router/router.h>
-#include <iostream>
 
 using namespace HTTPServ;
 using namespace nlohmann;
@@ -20,12 +19,12 @@ int main() {
     router.get("/test/:arg1/:arg2",
         [](Request *req, Response *res) {
             res
-            ->end(json({
+            ->end({
                 "args", {
                     req->getArg("arg1"),
                     req->getArg("arg2")
                 }
-            }));
+            });
         }
     );
 

@@ -35,7 +35,6 @@ namespace HTTPServ {
 
             void parseRequestLine();
             static void getLine(std::istream* is, std::string& out);
-            std::string getVerbAsString();
 
         public:
             Request(io::stream<InSocketStream>* stream, Logger& logger);
@@ -49,6 +48,7 @@ namespace HTTPServ {
             void setArgs(PathMatcher::ArgResults* reqArgs);
             std::string getArg(const std::string& name) const;
             std::string getArg(int index) const;
+            std::string getVerbAsString();
     };
 }
 

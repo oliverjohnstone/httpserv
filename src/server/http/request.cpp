@@ -12,16 +12,11 @@ HTTPServ::Request::Request(io::stream<InSocketStream> *stream, Logger &logger) :
     std::string uuidStr = boost::uuids::to_string(id);
 
     this->logger = logger.child(uuidStr);
-    this->logger->info("Request started");
 }
 
 HTTPServ::Request::~Request() {
-    std::stringstream ss;
-    ss << "Finished " << getVerbAsString() << " " << getUri();
-    logger->info(ss.str().c_str());
-
     delete stream;
-    delete logger; // New instance of logger as child
+    delete logger;
     delete args;
 }
 

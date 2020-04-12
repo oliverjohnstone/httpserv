@@ -5,6 +5,7 @@
 #ifndef HTTPSERV_CONNECTION_H
 #define HTTPSERV_CONNECTION_H
 
+#include <router/router.h>
 #include "request.h"
 #include "response.h"
 
@@ -19,8 +20,9 @@ namespace HTTPServ {
             virtual ~Connection();
             void reject();
             void parseRequestHeaders();
-            Request *getRequest() const;
-            Response *getResponse() const;
+            [[nodiscard]] Request *getRequest() const;
+            [[nodiscard]] Response *getResponse() const;
+            void handleRequest(const std::vector<HTTPServ::Router *>& routers);
     };
 }
 

@@ -25,7 +25,7 @@ namespace HTTPServ {
             Handles useHandlers;
             Handles handlers;
 
-            void handle(FilteredHandles* useChain, FilteredHandles* verbChain, PathMatcher::ArgResults* args, Request *req, Response *res);
+            bool handle(FilteredHandles* useChain, FilteredHandles* verbChain, PathMatcher::ArgResults* args, Request *req, Response *res);
             Router* use(const char *path, FilteredHandles &handleChain);
             Router* verb(const char *path, HTTP::VERB verb, FilteredHandles &handleChain);
 
@@ -90,7 +90,7 @@ namespace HTTPServ {
                 return verb(path, HTTP::VERB::PATCH, handlerFns);
             }
 
-            Route getHandler(HTTPServ::HTTP::VERB verb, std::string &path);
+            std::function<bool(Request *, Response *)> getHandler(HTTPServ::HTTP::VERB verb, std::string &path);
 
             template<class FnPtr, class ClassT>
             static Route boundHandler(FnPtr fnPtr, ClassT &instance) {

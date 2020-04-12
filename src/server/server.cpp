@@ -55,7 +55,6 @@ int HTTPServ::Server::run_async() {
 
             if (running) {
                 connectionHandlers.push_back(async(&Server::handle_request, this, conn));
-                std::cout << connectionHandlers.size() << std::endl;
             } else {
                 conn->reject();
                 delete conn;
@@ -78,18 +77,7 @@ void HTTPServ::Server::stop() {
 }
 
 void HTTPServ::Server::handle_request(HTTPServ::Connection *conn) {
-    conn->parseRequestHeaders();
-
-    // TODO - Do any more pre request handling processing here
-
-    auto req = conn->getRequest();
-    auto res = conn->getResponse();
-
-    for (auto router : routers) {
-        // TODO - try/catch and throw server error
-        router->getHandler(req->getVerb(), req->getUri())(req, res);
-    }
-
+    conn->handleRequest(routers);
     delete conn;
 }
 

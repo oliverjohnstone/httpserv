@@ -6,7 +6,9 @@
 #include <sstream>
 #include <boost/algorithm/string.hpp>
 
-HTTPServ::Response::Response(io::stream<OutSocketStream> *stream) : stream(stream) {}
+HTTPServ::Response::Response(io::stream<OutSocketStream> *stream) : stream(stream) {
+    header("Connection", "closed"); // TODO - Remove this once connections can remain open
+}
 
 HTTPServ::Response::~Response() {
     delete stream;
@@ -34,16 +36,21 @@ void HTTPServ::Response::sendHeaders() {
             *stream << name << ": " << value << HTTP::PROTO_ENDL;
         }
 
-        *stream << "Connection: Closed" << HTTP::PROTO_ENDL // TODO - Remove this once connections can remain open
-            << HTTP::PROTO_ENDL;
+        *stream << HTTP::PROTO_ENDL;
     }
 
     headersSent = true;
 }
 
 HTTPServ::Response* HTTPServ::Response::end(const std::string &body) {
+    if (ended) {
+        return this;
+    }
+
     sendHeaders();
     *stream << body;
+
+    ended = true;
     return this;
 }
 
@@ -55,7 +62,7 @@ HTTPServ::Response* HTTPServ::Response::end(const char * body) {
     return end(std::string(body));
 }
 
-HTTPServ::Response* HTTPServ::Response::header(const std::string& name, std::string value) {
+HTTPServ::Response* HTTPServ::Response::header(const std::string& name, const std::string& value) {
     if (headersSent) {
         throw std::runtime_error("Headers already sent");
     }
@@ -66,4 +73,8 @@ HTTPServ::Response* HTTPServ::Response::header(const std::string& name, std::str
 void HTTPServ::Response::syncWith(HTTPServ::Request *request) {
     httpVersion = request->getHTTPVersion();
     // TODO - Sync should close connections etc
+}
+
+HTTPServ::HTTP::STATUS HTTPServ::Response::getStatus() {
+    return statusCode;
 }
