@@ -9,11 +9,15 @@
 
 using namespace std;
 
-HTTPServ::Server::Server(int port, Logger& logger) : port(port), logger(logger), running(false), socket(nullptr) {
+HTTPServ::Server::Server(int port, Logger& logger) : logger(logger), running(false) {
+    socket = new ServerSocket(port, 50);
+}
+
+HTTPServ::Server::Server(int port, HTTPServ::Logger &logger, const HTTPServ::TLS::Config* tlsConfig) : logger(logger), running(false) {
+    socket = new ServerSocket(port, 50, tlsConfig);
 }
 
 int HTTPServ::Server::run() {
-    socket = new ServerSocket(port, 50);
     try {
         socket->listen();
     } catch (SocketError& e) {
@@ -23,7 +27,7 @@ int HTTPServ::Server::run() {
 
     auto futureResult = async(&Server::run_async, this);
 
-    logger.info(("Started on http://localhost:" + to_string(port)).c_str());
+    logger.info(("Started on http://localhost:"s + to_string(socket->getPort())).c_str());
 
     auto isFinished = [](std::future<void> &conn){
         std::chrono::milliseconds timeout(100);
@@ -60,8 +64,8 @@ int HTTPServ::Server::run_async() {
                 delete conn;
             }
         } catch (SocketError& e) {
-            logger.error(e.getMessage().c_str());
-            continue; // TODO - perhaps the server socket has failed and we should restart?
+            logger.warn(e.getMessage().c_str());
+            continue;
         }
     }
 

@@ -3,11 +3,29 @@
 //
 
 #include <server/socket.h>
+#include <openssl/err.h>
+
+std::string getOpenSSLError() {
+    BIO *bio = BIO_new(BIO_s_mem());
+    ERR_print_errors(bio);
+    char *buf;
+    size_t len = BIO_get_mem_data(bio, &buf);
+    std::string ret(buf, len);
+    BIO_free(bio);
+    return ret;
+}
 
 HTTPServ::ServerSocket::ServerSocket(int port, int maxConnections) : port(port), maxConnections(maxConnections) {
 }
 
+HTTPServ::ServerSocket::ServerSocket(int port, int maxConnections, const TLS::Config* tlsConfig) : port(port), maxConnections(maxConnections), tls(tlsConfig) {
+}
+
 void HTTPServ::ServerSocket::listen() {
+    if (tls) {
+        initTLS();
+    }
+
     auto opt = 1;
 
     sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -32,17 +50,36 @@ void HTTPServ::ServerSocket::listen() {
     }
 }
 
-std::tuple<io::stream<HTTPServ::InSocketStream>*, io::stream<HTTPServ::OutSocketStream>*> HTTPServ::ServerSocket::waitForClientConnection() {
+HTTPServ::ServerSocket::SocketStreams HTTPServ::ServerSocket::waitForClientConnection() {
     auto addressLength = sizeof(address);
     auto client_sock = accept(sock, (struct sockaddr *)&address, (socklen_t*)&addressLength);
     if (client_sock < 0) {
         throw SocketError("Invalid client socket");
     }
 
-    auto in = new io::stream<InSocketStream>(client_sock);
-    auto out = new io::stream<OutSocketStream>(client_sock);
+    auto listenTLS = [this, client_sock]() -> SocketStreams {
+        auto ssl = SSL_new(sslCtx);
+        SSL_set_fd(ssl, client_sock);
 
-    return {in, out};
+        if (SSL_accept(ssl) <= 0) {
+            ::close(client_sock);
+            throw SocketError("Unable to accept SSL connection: " + getOpenSSLError());
+        }
+
+        auto in = new io::stream<InSocketStream>(client_sock, ssl);
+        auto out = new io::stream<OutSocketStream>(client_sock, ssl);
+
+        return {in, out};
+    };
+
+    auto listen = [this, client_sock]() -> SocketStreams {
+        auto in = new io::stream<InSocketStream>(client_sock);
+        auto out = new io::stream<OutSocketStream>(client_sock);
+
+        return {in, out};
+    };
+
+    return tls ? listenTLS() : listen();
 }
 
 void HTTPServ::ServerSocket::close() {
@@ -51,6 +88,41 @@ void HTTPServ::ServerSocket::close() {
 
 HTTPServ::ServerSocket::~ServerSocket() {
     close();
+    if (tls) {
+        cleanTLS();
+    }
+}
+
+void HTTPServ::ServerSocket::initTLS() {
+    SSL_load_error_strings();
+    OpenSSL_add_ssl_algorithms();
+
+    const SSL_METHOD* method;
+    method = SSLv23_server_method();
+
+    sslCtx = SSL_CTX_new(method);
+    if (!sslCtx) {
+        throw SocketError("Unable to create SSL context");
+    }
+
+    SSL_CTX_set_ecdh_auto(sslCtx, 1);
+
+    if (SSL_CTX_use_certificate_file(sslCtx, tls->certFile.c_str(), SSL_FILETYPE_PEM) <= 0) {
+        throw SocketError("Unable to configure SSL certificate file.");
+    }
+
+    if (SSL_CTX_use_PrivateKey_file(sslCtx, tls->keyFile.c_str(), SSL_FILETYPE_PEM) <= 0 ) {
+        throw SocketError("Unable to configure SSL key file.");
+    }
+}
+
+void HTTPServ::ServerSocket::cleanTLS() {
+    SSL_CTX_free(sslCtx);
+    EVP_cleanup();
+}
+
+int HTTPServ::ServerSocket::getPort() {
+    return port;
 }
 
 HTTPServ::SocketError::SocketError(const std::string &message) : message(message) {}

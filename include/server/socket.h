@@ -9,7 +9,9 @@
 #include <boost/iostreams/stream.hpp>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <openssl/ssl.h>
 #include "stream.h"
+#include "tls.h"
 
 namespace io = boost::iostreams;
 
@@ -24,16 +26,25 @@ namespace HTTPServ {
     };
 
     class ServerSocket {
+        typedef std::tuple<io::stream<HTTPServ::InSocketStream>*, io::stream<HTTPServ::OutSocketStream>*> SocketStreams;
+
         private:
             int port, maxConnections, sock;
             struct sockaddr_in address;
+            const TLS::Config* tls = nullptr;
+            SSL_CTX* sslCtx = nullptr;
+
+            void initTLS();
+            void cleanTLS();
 
         public:
             ServerSocket(int port, int maxConnections);
+            ServerSocket(int port, int maxConnections, const TLS::Config* tlsConfig);
             virtual ~ServerSocket();
             void listen();
             void close();
-            std::tuple<io::stream<InSocketStream>*, io::stream<OutSocketStream>*> waitForClientConnection();
+            SocketStreams waitForClientConnection();
+            int getPort();
     };
 }
 

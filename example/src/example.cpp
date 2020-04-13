@@ -5,13 +5,18 @@
 #include <server/server.h>
 #include <logger/logger.h>
 #include <router/router.h>
+#include <server/tls.h>
 
 using namespace HTTPServ;
 using namespace nlohmann;
 
 int main() {
     Logger logger(std::cout);
-    Server server(8080, logger);
+    TLS::Config tlsConfig = {
+        .certFile = "./cert/cert.pem",
+        .keyFile = "./cert/key.pem"
+    };
+    Server server(8080, logger, &tlsConfig);
     Router router;
 
     server.attachRouter(&router);

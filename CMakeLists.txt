@@ -3,12 +3,15 @@ project(httpserv)
 
 set(CMAKE_CXX_STANDARD 20)
 set(BOOST_ROOT ~/boost-lib)
+set(OPENSSL_ROOT ~/openssl)
+set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
 
 find_package(Boost 1.72.0 COMPONENTS regex)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
 link_directories(
   lib/path_matcher
+  ${OPENSSL_ROOT}/lib
 )
 
 if(NOT Boost_FOUND)
@@ -17,7 +20,8 @@ endif()
 
 include_directories(
   include
-  ~/boost-lib/include
+  ${BOOST_ROOT}/include
+  ${OPENSSL_ROOT}/include
   lib
 )
 
@@ -36,7 +40,7 @@ add_library(httpserv
 
 add_executable(example
   example/src/example.cpp
-  include/server/http.h)
+  include/server/http.h include/server/tls.h)
 
 target_link_libraries(example
   httpserv
@@ -46,4 +50,6 @@ target_link_libraries(httpserv
   ${Boost_LIBRARIES}
   nlohmann_json::nlohmann_json
   path_matcher
+  ssl
+  crypto
 )

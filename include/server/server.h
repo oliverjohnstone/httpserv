@@ -7,6 +7,7 @@
 
 #include "logger/logger.h"
 #include "socket.h"
+#include "tls.h"
 #include <server/connection.h>
 #include <future>
 #include <vector>
@@ -15,7 +16,6 @@
 namespace HTTPServ {
     class Server {
         private:
-            int port;
             Logger& logger;
             ServerSocket* socket;
             std::atomic_bool running;
@@ -27,6 +27,7 @@ namespace HTTPServ {
 
         public:
             Server(int port, Logger& logger);
+            Server(int port, Logger& logger, const TLS::Config* tlsConfig);
             virtual ~Server();
             int run();
             void stop();
