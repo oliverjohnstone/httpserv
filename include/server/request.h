@@ -24,7 +24,7 @@ namespace HTTPServ {
     class Request {
         private:
             io::stream<InSocketStream> *stream;
-            std::map<std::string, std::string> headers;
+            std::unordered_map<std::string, std::string> headers;
             HTTP::VERB verb = HTTP::VERB::NONE;
             std::string uri;
             const char * httpVersion;
@@ -32,9 +32,11 @@ namespace HTTPServ {
             boost::uuids::uuid id;
             json context;
             PathMatcher::ArgResults* args;
+            std::unordered_map<std::string, std::string> query;
 
             void parseRequestLine();
             static void getLine(std::istream* is, std::string& out);
+            void parseQueryString(const std::string& queryString);
 
         public:
             Request(io::stream<InSocketStream>* stream, Logger& logger);
@@ -46,8 +48,9 @@ namespace HTTPServ {
             HTTP::VERB getVerb();
             json& getContext();
             void setArgs(PathMatcher::ArgResults* reqArgs);
-            std::string getArg(const std::string& name) const;
-            std::string getArg(int index) const;
+            std::string getArg(const std::string& name);
+            std::string getArg(int index);
+            std::string getQuery(const std::string& name);
             std::string getVerbAsString();
     };
 }

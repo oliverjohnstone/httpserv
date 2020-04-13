@@ -31,13 +31,17 @@ namespace HTTPServ {
                 return HTTPError(HTTP::STATUS::BAD_REQUEST, message);
             };
 
-            static HTTPError ServerError(std::string message = "Server Error") {
+            static HTTPError ServerError(std::string message = "Internal Server Error") {
                 return HTTPError(HTTP::STATUS::INTERNAL_SERVER_ERROR, message);
             };
 
             static HTTPError NotImplemented(std::string message = "Not Implemented") {
                 return HTTPError(HTTP::STATUS::NOT_IMPLEMENTED, message);
             };
+
+            static HTTPError MaxHeaderSize(std::string message = "Max header size exceeded") {
+                return HTTPError(HTTP::STATUS::REQUEST_HEADER_FIELDS_TOO_LARGE, message);
+            }
     };
 }
 

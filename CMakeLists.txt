@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
 project(httpserv)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(BOOST_ROOT ~/boost-lib)
 
-find_package(Boost  1.72.0 COMPONENTS regex)
+find_package(Boost 1.72.0 COMPONENTS regex)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
 link_directories(

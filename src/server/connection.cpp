@@ -24,13 +24,8 @@ void HTTPServ::Connection::reject() {
 }
 
 void HTTPServ::Connection::parseRequestHeaders() {
-    try {
-        request->parseHeaders();
-        response->syncWith(request);
-    } catch (HTTPError& e) {
-        response->status(e.getCode())->end(e.getMessage());
-        return;
-    }
+    request->parseHeaders();
+    response->syncWith(request);
 }
 
 HTTPServ::Request *HTTPServ::Connection::getRequest() const {
@@ -42,28 +37,37 @@ HTTPServ::Response *HTTPServ::Connection::getResponse() const {
 }
 
 void HTTPServ::Connection::handleRequest(const std::vector<HTTPServ::Router *>& routers) {
-    parseRequestHeaders();
-
-    auto req = getRequest();
-    auto res = getResponse();
-
     try {
         auto found = false;
+        parseRequestHeaders();
 
         for (auto router : routers) {
-            found |= router->getHandler(req->getVerb(), req->getUri())(req, res);
+            found |= router->getHandler(request->getVerb(), request->getUri())(request, response);
         }
 
         if (!found) {
-            res
+            response
             ->status(HTTP::STATUS::NOT_FOUND)
             ->header("Content-Type", "text/plain")
             ->end("Not Found");
         }
+    } catch (HTTPError& e) {
+        request->log()->warn(e.getMessage().c_str());
+        response
+        ->status(e.getCode())
+        ->header("Content-Type", "text/plain")
+        ->end(e.getMessage());
     } catch (std::exception& e) {
-        // TODO - Perhaps offload to a middleware
-        req->log()->error(e.what());
-        res
+        std::stringstream ss;
+        ss << "Exception of type (" << e.what() << ") thrown whilst handling request.";
+        request->log()->error(ss.str().c_str());
+        response
+        ->status(HTTP::STATUS::INTERNAL_SERVER_ERROR)
+        ->header("Content-Type", "text/plain")
+        ->end("Internal Server Error");
+    } catch (...) {
+        request->log()->error("Exception of unknown type thrown whilst handling request");
+        response
         ->status(HTTP::STATUS::INTERNAL_SERVER_ERROR)
         ->header("Content-Type", "text/plain")
         ->end("Internal Server Error");

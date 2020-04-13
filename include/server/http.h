@@ -13,6 +13,7 @@ namespace HTTPServ::HTTP {
     extern const char * VERSION_1_1;
     extern const char * VERSION_2;
     extern const char * PROTO_ENDL;
+    const int MAX_HEADER_SIZE = 8192;
 
     enum VERB {
         NONE,
@@ -83,6 +84,8 @@ namespace HTTPServ::HTTP {
     extern std::unordered_map<STATUS, const char *> STATUS_TEXT;
     extern std::unordered_map<std::string, HTTPServ::HTTP::VERB> VERB_MAP;
     extern std::unordered_map<HTTPServ::HTTP::VERB, const char *> VERB_TEXT;
+
+    std::string decode(const std::string& str);
 }
 
 #endif //HTTPSERV_HTTP_H

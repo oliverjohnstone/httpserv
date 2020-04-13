@@ -3,6 +3,9 @@
 //
 
 #include <server/http.h>
+#include <string>
+
+using namespace std;
 
 namespace HTTPServ::HTTP {
     const char * VERSION_1_1 = "HTTP/1.1";
@@ -81,4 +84,25 @@ namespace HTTPServ::HTTP {
         {STATUS::NOT_EXTENDED, "Not Extended"},
         {STATUS::NETWORK_AUTHENTICATION_REQUIRED, "Network Authentication Required"}
     };
+
+    string decode(const string &str) {
+        string decoded;
+
+        for (int i = 0; i < str.length(); i++) {
+            if (str[i] != '%') {
+                decoded += str[i];
+                continue;
+            }
+
+            auto ch = static_cast<char>(strtoul(str.substr(i + 1,2).c_str(), nullptr, 16));
+            if (ch == 0) {
+                throw std::invalid_argument("Unable to decode value at position "s + to_string(i) + ".");
+            }
+
+            decoded += ch;
+            i += 2;
+        }
+
+        return decoded;
+    }
 }

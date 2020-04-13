@@ -30,7 +30,7 @@ HTTPServ::Response* HTTPServ::Response::status(HTTP::STATUS code) {
 
 void HTTPServ::Response::sendHeaders() {
     if (!headersSent) {
-        *stream << httpVersion << " " << statusCode << " " << HTTP::STATUS_TEXT[statusCode] << HTTP::PROTO_ENDL;
+        *stream << (httpVersion ?: HTTP::VERSION_1_1) << " " << statusCode << " " << HTTP::STATUS_TEXT[statusCode] << HTTP::PROTO_ENDL;
 
         for (auto [name, value] : headers) {
             *stream << name << ": " << value << HTTP::PROTO_ENDL;

@@ -16,17 +16,22 @@ int main() {
 
     server.attachRouter(&router);
 
-    router.get("/test/:arg1/:arg2",
-        [](Request *req, Response *res) {
-            res
-            ->end({
+    router.get("/test/:arg1/:arg2", [](Request *req, Response *res) {
+        res->end({
+            {
                 "args", {
                     req->getArg("arg1"),
                     req->getArg("arg2")
                 }
-            });
-        }
-    );
+            },
+            {
+                "query", {
+                    req->getQuery("testQuery"),
+                    req->getQuery("hello")
+                }
+            }
+        });
+    });
 
     return server.run();
 }
