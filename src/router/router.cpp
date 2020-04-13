@@ -44,7 +44,6 @@ bool HTTPServ::Router::handle(FilteredHandles* useChain, FilteredHandles* verbCh
                               HTTPServ::Request *req, HTTPServ::Response *res) {
 
     auto matched = false;
-    req->setArgs(args);
 
     for (auto chain : {useChain, verbChain}) {
         if (chain == nullptr) {
@@ -52,6 +51,7 @@ bool HTTPServ::Router::handle(FilteredHandles* useChain, FilteredHandles* verbCh
         }
 
         if (chain->size()) {
+            req->setArgs(args);
             matched = true;
         }
 
@@ -75,7 +75,7 @@ HTTPServ::Router* HTTPServ::Router::verb(const char *path, HTTPServ::HTTP::VERB 
 
 HTTPServ::Router::~Router() {
     for (auto &collection : {handlers, useHandlers}) {
-        for (auto &[handler, routes] : handlers) {
+        for (auto &[handler, routes] : collection) {
             delete handler.path;
         }
     }
