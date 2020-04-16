@@ -19,20 +19,20 @@ int main() {
     Server server(8080, logger, &tlsConfig);
     Router router;
 
-    server.attachRouter(&router);
+    server.attachRouter(router);
 
-    router.get("/test/:arg1/:arg2", [](Request *req, Response *res) {
-        res->end({
+    router.get("/test/:arg1/:arg2", [](Request &req, Response &res) {
+        res.end({
             {
                 "args", {
-                    req->getArg("arg1"),
-                    req->getArg("arg2")
+                    req.getArg("arg1"),
+                    req.getArg("arg2")
                 }
             },
             {
                 "query", {
-                    req->getQuery("testQuery"),
-                    req->getQuery("hello")
+                    req.getQuery("testQuery"),
+                    req.getQuery("hello")
                 }
             }
         });

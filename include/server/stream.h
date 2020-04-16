@@ -18,15 +18,16 @@ namespace HTTPServ {
         private:
             int socketFd;
             SSL *ssl = nullptr;
+            bool timedOut = false;
 
         public:
             typedef char char_type;
             struct category : io::source_tag, io::closable_tag {};
-
             explicit InSocketStream(int socketFd);
             explicit InSocketStream(int socketFd, SSL *ssl);
             std::streamsize read(char * buf, std::streamsize chars);
             void close();
+            bool didTimeout();
     };
 
     class OutSocketStream {

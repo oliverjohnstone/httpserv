@@ -9,6 +9,13 @@
 
 using namespace std;
 
+auto closeStreams = [](io::stream<HTTPServ::InSocketStream>* in, io::stream<HTTPServ::OutSocketStream>* out) {
+    out->close();
+    in->close();
+    delete out;
+    delete in;
+};
+
 HTTPServ::Server::Server(int port, Logger& logger) : logger(logger), running(false) {
     socket = new ServerSocket(port, 50);
 }
@@ -54,14 +61,12 @@ int HTTPServ::Server::run_async() {
 
     while(running) {
         try {
-            auto [in, out] = socket->waitForClientConnection();
-            auto conn = new Connection(new Request(in, logger), new Response(out));
+            auto [in, out] = socket->waitForClientConnection(socketTimeout);
 
             if (running) {
-                connectionHandlers.push_back(async(&Server::handle_request, this, conn));
+                connectionHandlers.push_back(async(&Server::handle_request, this, in, out));
             } else {
-                conn->reject();
-                delete conn;
+                closeStreams(in, out);
             }
         } catch (SocketError& e) {
             logger.warn(e.getMessage().c_str());
@@ -80,12 +85,13 @@ void HTTPServ::Server::stop() {
     running = false;
 }
 
-void HTTPServ::Server::handle_request(HTTPServ::Connection *conn) {
-    conn->handleRequest(routers);
-    delete conn;
+void HTTPServ::Server::handle_request(io::stream<InSocketStream> *in, io::stream<OutSocketStream> *out) {
+    Connection conn(*in, *out, maxRequestPerSocket, socketTimeout);
+    conn.handleRequests(routers, logger);
+    closeStreams(in, out);
 }
 
-HTTPServ::Server* HTTPServ::Server::attachRouter(HTTPServ::Router *router) {
+HTTPServ::Server& HTTPServ::Server::attachRouter(HTTPServ::Router &router) {
     routers.push_back(router);
-    return this;
+    return *this;
 }

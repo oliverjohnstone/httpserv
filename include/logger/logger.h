@@ -33,7 +33,7 @@ namespace HTTPServ {
             void warn(const char* msg);
             void info(const char* msg);
             void error(const char* msg);
-            Logger* child(std::string& id);
+            Logger child(std::string& id);
     };
 }
 

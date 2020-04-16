@@ -18,28 +18,28 @@ using json = nlohmann::json;
 namespace HTTPServ {
     class Response {
         private:
-            io::stream<OutSocketStream> *stream;
+            io::stream<OutSocketStream>& stream;
             std::unordered_map<std::string, std::string> headers;
             bool headersSent = false;
             bool ended = false;
+            const int maxRequests;
+            const int socketTimeout;
             HTTP::STATUS statusCode = HTTP::STATUS::OK;
             const char * httpVersion;
 
             void sendHeaders();
 
         public:
-            explicit Response(io::stream<OutSocketStream> *stream);
-            virtual ~Response();
-            void flush();
-            void close();
-            void syncWith(HTTPServ::Request *request);
+            explicit Response(io::stream<OutSocketStream> &stream, int maxRequests, int socketTimeout);
+            void syncWith(HTTPServ::Request &request);
 
-            HTTPServ::Response* status(HTTPServ::HTTP::STATUS code);
-            HTTPServ::Response* end(const std::string& body = "");
-            HTTPServ::Response* end(const char * body);
-            HTTPServ::Response* end(const json& body);
-            HTTPServ::Response* header(const std::string& name, const std::string& value);
+            HTTPServ::Response& status(HTTPServ::HTTP::STATUS code);
+            HTTPServ::Response& end(const std::string& body = "");
+            HTTPServ::Response& end(const char * body);
+            HTTPServ::Response& end(const json& body);
+            HTTPServ::Response& header(const std::string& name, const std::string& value);
             HTTP::STATUS getStatus();
+            void flush();
     };
 }
 

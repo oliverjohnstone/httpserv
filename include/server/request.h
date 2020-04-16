@@ -6,9 +6,6 @@
 #define HTTPSERV_REQUEST_H
 
 #include <boost/iostreams/stream.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <map>
 #include <logger/logger.h>
 #include <nlohmann/json.hpp>
@@ -17,41 +14,41 @@
 #include "http.h"
 
 using json = nlohmann::json;
-
 namespace io = boost::iostreams;
 
 namespace HTTPServ {
     class Request {
         private:
-            io::stream<InSocketStream> *stream;
+            io::stream<InSocketStream>& stream;
             std::unordered_map<std::string, std::string> headers;
             HTTP::VERB verb = HTTP::VERB::NONE;
             std::string uri;
-            const char * httpVersion;
-            Logger* logger;
-            boost::uuids::uuid id;
+            const char* httpVersion;
+            Logger& logger;
             json context;
             PathMatcher::ArgResults* args;
             std::unordered_map<std::string, std::string> query;
+            int maxRequests;
+            int socketTimeout;
 
             void parseRequestLine();
-            static void getLine(std::istream* is, std::string& out);
-            void parseQueryString(const std::string& queryString);
+            void getLine(std::string &out);
+            void parseQueryString(const std::string &queryString);
 
         public:
-            Request(io::stream<InSocketStream>* stream, Logger& logger);
-            virtual ~Request();
+            Request(io::stream<InSocketStream> &stream, Logger &logger);
             void parseHeaders();
-            Logger* log();
+            Logger& log();
             std::string& getUri();
             const char *getHTTPVersion();
             HTTP::VERB getVerb();
             json& getContext();
-            void setArgs(PathMatcher::ArgResults* reqArgs);
-            std::string getArg(const std::string& name);
+            void setArgs(PathMatcher::ArgResults *reqArgs);
+            std::string getArg(const std::string &name);
             std::string getArg(int index);
-            std::string getQuery(const std::string& name);
+            std::string getQuery(const std::string &name);
             std::string getVerbAsString();
+            bool shouldClose();
     };
 }
 

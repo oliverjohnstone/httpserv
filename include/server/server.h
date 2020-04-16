@@ -20,19 +20,22 @@ namespace HTTPServ {
             ServerSocket* socket;
             std::atomic_bool running;
             std::vector<std::future<void>> connectionHandlers;
-            std::vector<HTTPServ::Router*> routers;
+            std::vector<std::reference_wrapper<HTTPServ::Router>> routers;
+
+            int socketTimeout = 10;
+            int maxRequestPerSocket = 100;
 
             int run_async();
-            void handle_request(Connection *conn);
+            void handle_request(io::stream<InSocketStream> *in, io::stream<OutSocketStream> *out);
 
         public:
-            Server(int port, Logger& logger);
-            Server(int port, Logger& logger, const TLS::Config* tlsConfig);
+            Server(int port, Logger &logger);
+            Server(int port, Logger &logger, const TLS::Config *tlsConfig);
             virtual ~Server();
             int run();
             void stop();
 
-            Server* attachRouter(HTTPServ::Router* router);
+            Server& attachRouter(HTTPServ::Router &router);
     };
 }
 

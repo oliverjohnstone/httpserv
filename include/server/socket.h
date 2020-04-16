@@ -25,6 +25,8 @@ namespace HTTPServ {
             [[nodiscard]] const std::string &getMessage() const;
     };
 
+    class SocketTimeout : public std::exception {};
+
     class ServerSocket {
         typedef std::tuple<io::stream<HTTPServ::InSocketStream>*, io::stream<HTTPServ::OutSocketStream>*> SocketStreams;
 
@@ -43,7 +45,7 @@ namespace HTTPServ {
             virtual ~ServerSocket();
             void listen();
             void close();
-            SocketStreams waitForClientConnection();
+            SocketStreams waitForClientConnection(int socketTimeout);
             int getPort();
     };
 }

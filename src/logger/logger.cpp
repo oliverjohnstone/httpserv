@@ -61,6 +61,6 @@ void HTTPServ::Logger::logLevelText(char* out, LOG_LEVEL level) {
     }
 }
 
-HTTPServ::Logger* HTTPServ::Logger::child(std::string& childId) {
-    return new Logger(this->logStream, this->enableColour, childId);
+HTTPServ::Logger HTTPServ::Logger::child(std::string& childId) {
+    return Logger(logStream, enableColour, childId);
 }

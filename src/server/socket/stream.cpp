@@ -5,11 +5,18 @@
 #include <server/stream.h>
 
 std::streamsize HTTPServ::InSocketStream::read(char *buf, std::streamsize num) {
+    int result;
     if (ssl) {
-        return SSL_read(ssl, buf, num);
+        result = SSL_read(ssl, buf, num);
     } else {
-        return ::read(socketFd, buf, num);
+        result = ::read(socketFd, buf, num);
     }
+
+    if (result < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+        timedOut = true;
+    }
+
+    return result;
 }
 
 HTTPServ::InSocketStream::InSocketStream(int socketFd) : socketFd(socketFd) {}
@@ -22,6 +29,10 @@ void HTTPServ::InSocketStream::close() {
         SSL_free(ssl);
     }
     ::close(socketFd);
+}
+
+bool HTTPServ::InSocketStream::didTimeout() {
+    return timedOut;
 }
 
 HTTPServ::OutSocketStream::OutSocketStream(int socketFd) : socketFd(socketFd) {}

@@ -50,9 +50,13 @@ void HTTPServ::ServerSocket::listen() {
     }
 }
 
-HTTPServ::ServerSocket::SocketStreams HTTPServ::ServerSocket::waitForClientConnection() {
+HTTPServ::ServerSocket::SocketStreams HTTPServ::ServerSocket::waitForClientConnection(int socketTimeout) {
     auto addressLength = sizeof(address);
     auto client_sock = accept(sock, (struct sockaddr *)&address, (socklen_t*)&addressLength);
+
+    struct timeval tv{.tv_sec=socketTimeout};
+    setsockopt(client_sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(struct timeval));
+
     if (client_sock < 0) {
         throw SocketError("Invalid client socket");
     }

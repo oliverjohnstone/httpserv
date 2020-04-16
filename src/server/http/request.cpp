@@ -5,24 +5,14 @@
 #include <server/request.h>
 #include <boost/algorithm/string.hpp>
 #include <server/error.h>
+#include <server/socket.h>
 
-HTTPServ::Request::Request(io::stream<InSocketStream> *stream, Logger &logger) : stream(stream), args(nullptr) {
-    boost::uuids::random_generator generateId;
-    id = generateId();
-    std::string uuidStr = boost::uuids::to_string(id);
-
-    this->logger = logger.child(uuidStr);
-}
-
-HTTPServ::Request::~Request() {
-    delete stream;
-    delete logger;
-    delete args;
+HTTPServ::Request::Request(io::stream<InSocketStream> &stream, Logger &logger) : stream(stream), args(nullptr), logger(logger) {
 }
 
 void HTTPServ::Request::parseRequestLine() {
     std::string request;
-    getLine(stream, request);
+    getLine(request);
 
     if (request.empty()) {
         throw HTTPError::BadRequest();
@@ -61,7 +51,7 @@ void HTTPServ::Request::parseHeaders() {
 
     for (;;) {
         std::string header;
-        getLine(stream, header);
+        getLine(header);
 
         if (header.empty()) {
             break;
@@ -74,15 +64,19 @@ void HTTPServ::Request::parseHeaders() {
         boost::algorithm::trim(name);
         boost::algorithm::trim(value);
 
-        headers[name] = value;
+        headers[boost::algorithm::to_lower_copy(name)] = boost::algorithm::to_lower_copy(value);
     }
 }
 
-void HTTPServ::Request::getLine(std::istream* is, std::string& out) {
+void HTTPServ::Request::getLine(std::string &out) {
     auto endOfLine = false;
-    while (out.length() < HTTP::MAX_HEADER_SIZE && !is->eof()) {
-        auto ch = is->get();
-        if (is->fail()) {
+    while (out.length() < HTTP::MAX_HEADER_SIZE && !stream.eof()) {
+        auto ch = stream.get();
+        if (stream.fail()) {
+            if (stream.component()->didTimeout()) {
+                throw SocketTimeout();
+            }
+
             throw HTTPError::ServerError();
         }
 
@@ -103,7 +97,7 @@ void HTTPServ::Request::getLine(std::istream* is, std::string& out) {
     }
 }
 
-HTTPServ::Logger* HTTPServ::Request::log() {
+HTTPServ::Logger& HTTPServ::Request::log() {
     return logger;
 }
 
@@ -133,6 +127,10 @@ void HTTPServ::Request::setArgs(PathMatcher::ArgResults* reqArgs) {
 }
 
 std::string HTTPServ::Request::getArg(const std::string& name) {
+    if (!args) {
+        throw std::logic_error("Request arguments have not been set.");
+    }
+
     auto str = (*args)[name];
 
     if (str.empty()) {
@@ -167,4 +165,8 @@ void HTTPServ::Request::parseQueryString(const std::string &queryString) {
 
         query[name] = value;
     }
+}
+
+bool HTTPServ::Request::shouldClose() {
+    return headers["connection"] == "close";
 }

@@ -5,71 +5,80 @@
 #include <server/connection.h>
 #include <server/error.h>
 #include <sstream>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <server/socket.h>
 
-HTTPServ::Connection::Connection(HTTPServ::Request *request, HTTPServ::Response *response) : request(request), response(response) {
+HTTPServ::Connection::Connection(io::stream<InSocketStream> &in, io::stream<OutSocketStream> &out,
+    int maxRequests, int socketTimeout) : in(in), out(out), maxRequests(maxRequests), socketTimeout(socketTimeout) {
 }
 
-HTTPServ::Connection::~Connection() {
-    std::stringstream ss;
-    ss << "[" << request->getVerbAsString() << " " << response->getStatus() << "] " << request->getUri();
-    request->log()->info(ss.str().c_str());
+void HTTPServ::Connection::handleRequests(const std::vector<std::reference_wrapper<HTTPServ::Router>> &routers, Logger &parentLogger) {
+    for (auto i = 0; i < maxRequests; i++) {
+        boost::uuids::random_generator generateId;
+        auto id = generateId();
+        std::string uuidStr = boost::uuids::to_string(id);
+        auto logger = parentLogger.child(uuidStr);
+        Request req(in, logger);
+        Response res(out, maxRequests, socketTimeout);
 
-    response->close();
-    delete request;
-    delete response;
-}
+        try {
+            auto found = false;
 
-void HTTPServ::Connection::reject() {
-    response->status(HTTP::STATUS::SERVICE_UNAVAILABLE)->end("Server Unavailable");
-}
+            req.parseHeaders();
+            res.syncWith(req);
 
-void HTTPServ::Connection::parseRequestHeaders() {
-    request->parseHeaders();
-    response->syncWith(request);
-}
+            logRequestStart(logger);
 
-HTTPServ::Request *HTTPServ::Connection::getRequest() const {
-    return request;
-}
+            for (auto &routerRef : routers) {
+                auto handler = routerRef.get().getHandler(req.getVerb(), req.getUri());
+                found |= handler(req, res);
+            }
 
-HTTPServ::Response *HTTPServ::Connection::getResponse() const {
-    return response;
-}
+            if (!found) {
+                res
+                    .status(HTTP::STATUS::NOT_FOUND)
+                    .header("Content-Type", "text/plain")
+                    .end("Not Found");
+            }
 
-void HTTPServ::Connection::handleRequest(const std::vector<HTTPServ::Router *>& routers) {
-    try {
-        auto found = false;
-        parseRequestHeaders();
+            logRequestEnd(logger, req, res);
 
-        for (auto router : routers) {
-            found |= router->getHandler(request->getVerb(), request->getUri())(request, response);
+            if (req.shouldClose()) {
+                break;
+            }
+        } catch (SocketTimeout &e) {
+            break;
+        } catch (HTTPError& e) {
+            logger.warn(e.getMessage().c_str());
+            res
+                .status(e.getCode())
+                .header("Content-Type", "text/plain")
+                .end(e.getMessage());
+        } catch (std::exception& e) {
+            std::stringstream ss;
+            ss << "Exception of type (" << e.what() << ") thrown whilst handling request.";
+            logger.error(ss.str().c_str());
+            res
+                .status(HTTP::STATUS::INTERNAL_SERVER_ERROR)
+                .header("Content-Type", "text/plain")
+                .end("Internal Server Error");
+        } catch (...) {
+            logger.error("Exception of unknown type thrown whilst handling request");
+            res
+                .status(HTTP::STATUS::INTERNAL_SERVER_ERROR)
+                .header("Content-Type", "text/plain")
+                .end("Internal Server Error");
         }
-
-        if (!found) {
-            response
-            ->status(HTTP::STATUS::NOT_FOUND)
-            ->header("Content-Type", "text/plain")
-            ->end("Not Found");
-        }
-    } catch (HTTPError& e) {
-        request->log()->warn(e.getMessage().c_str());
-        response
-        ->status(e.getCode())
-        ->header("Content-Type", "text/plain")
-        ->end(e.getMessage());
-    } catch (std::exception& e) {
-        std::stringstream ss;
-        ss << "Exception of type (" << e.what() << ") thrown whilst handling request.";
-        request->log()->error(ss.str().c_str());
-        response
-        ->status(HTTP::STATUS::INTERNAL_SERVER_ERROR)
-        ->header("Content-Type", "text/plain")
-        ->end("Internal Server Error");
-    } catch (...) {
-        request->log()->error("Exception of unknown type thrown whilst handling request");
-        response
-        ->status(HTTP::STATUS::INTERNAL_SERVER_ERROR)
-        ->header("Content-Type", "text/plain")
-        ->end("Internal Server Error");
     }
+}
+
+void HTTPServ::Connection::logRequestStart(Logger &logger) {
+    logger.info("Request started");
+}
+
+void HTTPServ::Connection::logRequestEnd(Logger &logger, Request &req, Response &res) {
+    std::stringstream ss;
+    ss << "[" << req.getVerbAsString() << " " << res.getStatus() << "] " << req.getUri();
+    logger.info(ss.str().c_str());
 }

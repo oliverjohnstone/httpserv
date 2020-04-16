@@ -6,7 +6,7 @@
 
 HTTPServ::Router::Router() {}
 
-std::function<bool(HTTPServ::Request *, HTTPServ::Response *)> HTTPServ::Router::getHandler(
+std::function<bool(HTTPServ::Request&, HTTPServ::Response&)> HTTPServ::Router::getHandler(
         HTTPServ::HTTP::VERB verb, std::string &path) {
 
     auto args = new PathMatcher::ArgResults;
@@ -30,47 +30,59 @@ std::function<bool(HTTPServ::Request *, HTTPServ::Response *)> HTTPServ::Router:
     };
 
     return std::bind(
-            &Router::handle,
-            this,
-            findFn(useHandlers),
-            findFn(handlers),
-            args,
-            std::placeholders::_1,
-            std::placeholders::_2
+        &Router::handle,
+        this,
+        findFn(useHandlers),
+        findFn(handlers),
+        args,
+        std::placeholders::_1,
+        std::placeholders::_2
     );
 }
 
 bool HTTPServ::Router::handle(FilteredHandles* useChain, FilteredHandles* verbChain, PathMatcher::ArgResults* args,
-                              HTTPServ::Request *req, HTTPServ::Response *res) {
+                              HTTPServ::Request &req, HTTPServ::Response &res) {
 
     auto matched = false;
+    req.setArgs(args);
 
-    for (auto chain : {useChain, verbChain}) {
-        if (chain == nullptr) {
-            continue;
-        }
+    auto freeArgs = [args, &req]() {
+        req.setArgs(nullptr);
+        delete args;
+    };
 
-        if (chain->size()) {
-            req->setArgs(args);
-            matched = true;
-        }
+    try {
+        for (auto chain : {useChain, verbChain}) {
+            if (chain == nullptr) {
+                continue;
+            }
 
-        for (auto&& handler : *chain) {
-            handler(req, res);
+            if (chain->size()) {
+                matched = true;
+            }
+
+            for (auto&& handler : *chain) {
+                handler(req, res);
+            }
         }
+    } catch (...) {
+        freeArgs();
+        // TODO - Confirm this gets caught and rethrown
+        throw;
     }
 
+    freeArgs();
     return matched;
 }
 
-HTTPServ::Router* HTTPServ::Router::use(const char *path, FilteredHandles &handleChain) {
+HTTPServ::Router& HTTPServ::Router::use(const char *path, FilteredHandles &handleChain) {
     useHandlers.push_back({{.path= new PathMatcher::Matcher(path)}, handleChain});
-    return this;
+    return *this;
 }
 
-HTTPServ::Router* HTTPServ::Router::verb(const char *path, HTTPServ::HTTP::VERB verb, HTTPServ::Router::FilteredHandles &handleChain) {
+HTTPServ::Router& HTTPServ::Router::verb(const char *path, HTTPServ::HTTP::VERB verb, HTTPServ::Router::FilteredHandles &handleChain) {
     handlers.push_back({{.path= new PathMatcher::Matcher(path), .verb=verb}, handleChain});
-    return this;
+    return *this;
 }
 
 HTTPServ::Router::~Router() {
