@@ -3,14 +3,12 @@
 //
 
 #include <server/response.h>
-#include <sstream>
 #include <boost/algorithm/string.hpp>
 #include <string>
 
 using namespace std;
 
-HTTPServ::Response::Response(io::stream<OutSocketStream> &stream, int maxRequests, int socketTimeout) :
-    stream(stream), maxRequests(maxRequests), socketTimeout(socketTimeout) {
+HTTPServ::Response::Response(HTTPServ::HTTPVersion *httpImpl) : httpImpl(httpImpl) {
 }
 
 HTTPServ::Response& HTTPServ::Response::status(HTTP::STATUS code) {
@@ -20,13 +18,8 @@ HTTPServ::Response& HTTPServ::Response::status(HTTP::STATUS code) {
 
 void HTTPServ::Response::sendHeaders() {
     if (!headersSent) {
-        stream << (httpVersion ?: HTTP::VERSION_1_1) << " " << statusCode << " " << HTTP::STATUS_TEXT[statusCode] << HTTP::PROTO_ENDL;
-
-        for (auto [name, value] : headers) {
-            stream << name << ": " << value << HTTP::PROTO_ENDL;
-        }
-
-        stream << HTTP::PROTO_ENDL;
+        httpImpl->writeStatusHeader(statusCode);
+        httpImpl->writeHeaders(headers);
     }
 
     headersSent = true;
@@ -39,7 +32,7 @@ HTTPServ::Response& HTTPServ::Response::end(const string &body) {
 
     header("Content-Length", to_string(body.length()));
     sendHeaders();
-    stream << body;
+    httpImpl->writeBody(body);
 
     flush();
     ended = true;
@@ -63,14 +56,15 @@ HTTPServ::Response& HTTPServ::Response::header(const string& name, const string&
 }
 
 void HTTPServ::Response::syncWith(HTTPServ::Request& request) {
-    httpVersion = request.getHTTPVersion();
+    // TODO - Implement at proto level
+//    httpVersion = request.getHTTPVersion();
 
-    if (request.shouldClose()) {
-        header("Connection", "close");
-    } else {
-        header("Connection", "keep-alive");
-        header("Keep-Alive", "timeout="s + to_string(socketTimeout) + ", max="s + to_string(maxRequests));
-    }
+//    if (request.shouldClose()) {
+//        header("Connection", "close");
+//    } else {
+//        header("Connection", "keep-alive");
+//        header("Keep-Alive", "timeout="s + to_string(socketTimeout) + ", max="s + to_string(maxRequests));
+//    }
 }
 
 HTTPServ::HTTP::STATUS HTTPServ::Response::getStatus() {
@@ -78,5 +72,5 @@ HTTPServ::HTTP::STATUS HTTPServ::Response::getStatus() {
 }
 
 void HTTPServ::Response::flush() {
-    stream.flush();
+    httpImpl->flush();
 }

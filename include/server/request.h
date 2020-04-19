@@ -12,6 +12,7 @@
 #include <path_matcher/path_matcher.h>
 #include "stream.h"
 #include "http.h"
+#include "../../src/server/http/version.h"
 
 using json = nlohmann::json;
 namespace io = boost::iostreams;
@@ -19,25 +20,13 @@ namespace io = boost::iostreams;
 namespace HTTPServ {
     class Request {
         private:
-            io::stream<InSocketStream>& stream;
-            std::unordered_map<std::string, std::string> headers;
-            HTTP::VERB verb = HTTP::VERB::NONE;
-            std::string uri;
-            const char* httpVersion;
+            HTTPVersion* httpImpl = nullptr;
             Logger& logger;
             json context;
             PathMatcher::ArgResults* args;
-            std::unordered_map<std::string, std::string> query;
-            int maxRequests;
-            int socketTimeout;
-
-            void parseRequestLine();
-            void getLine(std::string &out);
-            void parseQueryString(const std::string &queryString);
 
         public:
-            Request(io::stream<InSocketStream> &stream, Logger &logger);
-            void parseHeaders();
+            Request(HTTPVersion *httpImpl, Logger &logger);
             Logger& log();
             std::string& getUri();
             const char *getHTTPVersion();
@@ -46,9 +35,10 @@ namespace HTTPServ {
             void setArgs(PathMatcher::ArgResults *reqArgs);
             std::string getArg(const std::string &name);
             std::string getArg(int index);
-            std::string getQuery(const std::string &name);
             std::string getVerbAsString();
+            std::string& getQuery(const std::string& name);
             bool shouldClose();
+            void init();
     };
 }
 

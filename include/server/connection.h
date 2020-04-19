@@ -8,14 +8,12 @@
 #include <router/router.h>
 #include "request.h"
 #include "response.h"
+#include "../../src/server/http/http_stream.h"
 
 namespace HTTPServ {
     class Connection {
         private:
-            io::stream<InSocketStream>& in;
-            io::stream<OutSocketStream>& out;
-            int maxRequests;
-            int socketTimeout;
+            HTTPStream stream;
 
             void logRequestStart(Logger &logger);
             void logRequestEnd(Logger &logger, Request &req, Response &res);

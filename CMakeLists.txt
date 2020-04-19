@@ -36,7 +36,16 @@ add_library(httpserv
   include/server/error.h
   include/server/http.h
   src/server/http.cpp
-  src/router/router.cpp)
+  src/router/router.cpp
+  src/server/http/http_stream.cpp
+  src/server/http/http_stream.h
+  src/server/http/v1/httpv_1.cpp
+  src/server/http/v1/httpv_1.h
+  src/server/http/version.cpp
+  src/server/http/version.h
+  src/server/http/v2/httpv_2.cpp
+  src/server/http/v2/httpv_2.h
+  src/server/http/v2/v_2_stream.cpp src/server/http/v2/v_2_stream.h)
 
 add_executable(example
   example/src/example.cpp

@@ -8,24 +8,31 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <server/socket.h>
+#include "http/http_stream.h"
 
 HTTPServ::Connection::Connection(io::stream<InSocketStream> &in, io::stream<OutSocketStream> &out,
-    int maxRequests, int socketTimeout) : in(in), out(out), maxRequests(maxRequests), socketTimeout(socketTimeout) {
+    int maxRequests, int socketTimeout) : stream(in, out, maxRequests, socketTimeout) {
 }
 
 void HTTPServ::Connection::handleRequests(const std::vector<std::reference_wrapper<HTTPServ::Router>> &routers, Logger &parentLogger) {
-    for (auto i = 0; i < maxRequests; i++) {
+    while (true) {
         boost::uuids::random_generator generateId;
-        auto id = generateId();
-        std::string uuidStr = boost::uuids::to_string(id);
+        std::string uuidStr = boost::uuids::to_string(generateId());
+        auto shouldClose = false;
         auto logger = parentLogger.child(uuidStr);
-        Request req(in, logger);
-        Response res(out, maxRequests, socketTimeout);
+        auto httpImpl = stream.next();
+
+        if (!httpImpl) {
+            break;
+        }
+
+        Request req(httpImpl, logger);
+        Response res(httpImpl);
 
         try {
             auto found = false;
 
-            req.parseHeaders();
+            req.init();
             res.syncWith(req);
 
             logRequestStart(logger);
@@ -44,11 +51,9 @@ void HTTPServ::Connection::handleRequests(const std::vector<std::reference_wrapp
 
             logRequestEnd(logger, req, res);
 
-            if (req.shouldClose()) {
-                break;
-            }
+            shouldClose = req.shouldClose();
         } catch (SocketTimeout &e) {
-            break;
+            shouldClose = true;
         } catch (HTTPError& e) {
             logger.warn(e.getMessage().c_str());
             res
@@ -69,6 +74,12 @@ void HTTPServ::Connection::handleRequests(const std::vector<std::reference_wrapp
                 .status(HTTP::STATUS::INTERNAL_SERVER_ERROR)
                 .header("Content-Type", "text/plain")
                 .end("Internal Server Error");
+        }
+
+        delete httpImpl;
+
+        if (shouldClose) {
+            break;
         }
     }
 }
