@@ -45,7 +45,7 @@ add_library(httpserv
   src/server/http/version.h
   src/server/http/v2/httpv_2.cpp
   src/server/http/v2/httpv_2.h
-  src/server/http/v2/v_2_stream.cpp src/server/http/v2/v_2_stream.h)
+  src/server/http/v2/v_2_stream.cpp src/server/http/v2/v_2_stream.h src/server/http/v2/stream_manager.cpp src/server/http/v2/stream_manager.h)
 
 add_executable(example
   example/src/example.cpp

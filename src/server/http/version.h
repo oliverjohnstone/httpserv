@@ -18,7 +18,6 @@ namespace HTTPServ {
             HTTP::VERB verb = HTTP::VERB::NONE;
             std::string uri;
             std::unordered_map<std::string, std::string> headers;
-            const char* httpVersion;
 
             void parseQueryString(const std::string &queryString);
 
@@ -29,10 +28,8 @@ namespace HTTPServ {
             std::string& getUri();
             std::string& getQuery(const std::string& name);
             std::string& getHeader(const std::string& name);
-            const char *getVersion();
 
             virtual int readBody(char *buf, int numBytes) = 0;
-            virtual void init() = 0;
             virtual void flush() = 0;
             virtual void writeStatusHeader(HTTP::STATUS status) = 0;
             virtual void writeHeaders(std::unordered_map<std::string, std::string> &headers) = 0;

@@ -9,10 +9,12 @@
 #include <boost/iostreams/stream.hpp>
 #include <server/request.h>
 #include <server/response.h>
+#include "v2/stream_manager.h"
 
 namespace HTTPServ {
     class HTTPStream {
         private:
+            StreamManager *v2StreamManager = nullptr;
             io::stream<InSocketStream> &inStream;
             io::stream<OutSocketStream> &outStream;
             const char * version = nullptr;
@@ -22,6 +24,7 @@ namespace HTTPServ {
 
         public:
             HTTPStream(io::stream<InSocketStream> &inStream, io::stream<OutSocketStream> &outStream, int maxRequests, int connectionTimeout);
+            virtual ~HTTPStream();
             HTTPServ::HTTPVersion* next();
     };
 }

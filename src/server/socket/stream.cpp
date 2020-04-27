@@ -21,7 +21,8 @@ std::streamsize HTTPServ::InSocketStream::read(char *buf, std::streamsize num) {
 
 HTTPServ::InSocketStream::InSocketStream(int socketFd) : socketFd(socketFd) {}
 
-HTTPServ::InSocketStream::InSocketStream(int socketFd, SSL *ssl) : ssl(ssl), socketFd(socketFd) {}
+HTTPServ::InSocketStream::InSocketStream(int socketFd, SSL *ssl, ALPN alpn) : ssl(ssl), socketFd(socketFd), alpn(alpn) {
+}
 
 void HTTPServ::InSocketStream::close() {
     if (ssl) {
@@ -35,8 +36,13 @@ bool HTTPServ::InSocketStream::didTimeout() {
     return timedOut;
 }
 
+bool HTTPServ::InSocketStream::isH2Socket() {
+    return alpn == ALPN::H2;
+}
+
 HTTPServ::OutSocketStream::OutSocketStream(int socketFd) : socketFd(socketFd) {}
-HTTPServ::OutSocketStream::OutSocketStream(int socketFd, SSL *ssl) : ssl(ssl), socketFd(socketFd) {}
+HTTPServ::OutSocketStream::OutSocketStream(int socketFd, SSL *ssl) : ssl(ssl), socketFd(socketFd) {
+}
 
 std::streamsize HTTPServ::OutSocketStream::write(const char* buf, std::streamsize num) {
     if (ssl) {

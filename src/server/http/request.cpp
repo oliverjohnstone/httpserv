@@ -27,10 +27,6 @@ std::string& HTTPServ::Request::getUri() {
     return httpImpl->getUri();
 }
 
-const char *HTTPServ::Request::getHTTPVersion() {
-    return httpImpl->getVersion();
-}
-
 HTTPServ::HTTP::VERB HTTPServ::Request::getVerb() {
     return httpImpl->getVerb();
 }
@@ -63,8 +59,4 @@ string HTTPServ::Request::getArg(int index) {
 
 bool HTTPServ::Request::shouldClose() {
     return httpImpl->getHeader("connection") == "close";
-}
-
-void HTTPServ::Request::init() {
-    httpImpl->init();
 }

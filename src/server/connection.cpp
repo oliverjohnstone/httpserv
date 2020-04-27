@@ -20,6 +20,7 @@ void HTTPServ::Connection::handleRequests(const std::vector<std::reference_wrapp
         std::string uuidStr = boost::uuids::to_string(generateId());
         auto shouldClose = false;
         auto logger = parentLogger.child(uuidStr);
+        // TODO - Catch any errors from stream next()
         auto httpImpl = stream.next();
 
         if (!httpImpl) {
@@ -32,7 +33,6 @@ void HTTPServ::Connection::handleRequests(const std::vector<std::reference_wrapp
         try {
             auto found = false;
 
-            req.init();
             res.syncWith(req);
 
             logRequestStart(logger);

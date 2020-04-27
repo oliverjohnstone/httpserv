@@ -6,25 +6,17 @@
 #define HTTPSERV_HTTPV_2_H
 
 #include "../version.h"
-#include "../v1/httpv_1.h"
 
 namespace HTTPServ {
     class HTTPV2 : public HTTPVersion {
-        private:
-            HTTPV1 *v1 = nullptr;
-
         public:
-            explicit HTTPV2(HTTPV1 *v1);
-            // TODO - Constructor from new filtered streams
-            ~HTTPV2();
+            explicit HTTPV2(); // TODO - Constructor from new filtered streams
 
             int readBody(char *buf, int numBytes) override;
-            HTTPV2* upgrade();
             void flush() override;
             void writeStatusHeader(HTTP::STATUS status) override;
             void writeHeaders(std::unordered_map<std::string, std::string> &headers) override;
             void writeBody(const std::string &body) override;
-            void init() override;
     };
 }
 

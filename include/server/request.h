@@ -29,7 +29,6 @@ namespace HTTPServ {
             Request(HTTPVersion *httpImpl, Logger &logger);
             Logger& log();
             std::string& getUri();
-            const char *getHTTPVersion();
             HTTP::VERB getVerb();
             json& getContext();
             void setArgs(PathMatcher::ArgResults *reqArgs);
@@ -38,7 +37,6 @@ namespace HTTPServ {
             std::string getVerbAsString();
             std::string& getQuery(const std::string& name);
             bool shouldClose();
-            void init();
     };
 }
 

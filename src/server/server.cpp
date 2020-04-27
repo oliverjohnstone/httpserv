@@ -92,6 +92,6 @@ void HTTPServ::Server::handle_request(io::stream<InSocketStream> *in, io::stream
 }
 
 HTTPServ::Server& HTTPServ::Server::attachRouter(HTTPServ::Router &router) {
-    routers.push_back(router);
+    routers.emplace_back(router);
     return *this;
 }

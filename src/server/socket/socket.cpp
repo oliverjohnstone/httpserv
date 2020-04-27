@@ -4,6 +4,9 @@
 
 #include <server/socket.h>
 #include <openssl/err.h>
+#include <cstdint>
+
+using namespace std;
 
 std::string getOpenSSLError() {
     BIO *bio = BIO_new(BIO_s_mem());
@@ -14,6 +17,11 @@ std::string getOpenSSLError() {
     BIO_free(bio);
     return ret;
 }
+
+const unsigned char serverProtocols[] = {
+    2, 'h', '2',
+    8, 'h', 't', 't', 'p', '/', '1', '.', '1'
+};
 
 HTTPServ::ServerSocket::ServerSocket(int port, int maxConnections) : port(port), maxConnections(maxConnections) {
 }
@@ -41,7 +49,7 @@ void HTTPServ::ServerSocket::listen() {
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(port);
 
-    if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0) {
+    if (::bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0) {
         throw SocketError("Unable to bind to port");
     }
 
@@ -70,7 +78,20 @@ HTTPServ::ServerSocket::SocketStreams HTTPServ::ServerSocket::waitForClientConne
             throw SocketError("Unable to accept SSL connection: " + getOpenSSLError());
         }
 
-        auto in = new io::stream<InSocketStream>(client_sock, ssl);
+        const unsigned char *alpnPtr;
+        size_t alpnLen;
+        ALPN alpn = ALPN::HTTP1_1;
+
+        SSL_SESSION_get0_alpn_selected(SSL_get_session(ssl), &alpnPtr, &alpnLen);
+
+        for (auto &[str, val] : ALPN_MAP) {
+            if (strncmp(reinterpret_cast<const char *>(alpnPtr), "h2", alpnLen) == 0) {
+                alpn = val;
+                break;
+            }
+        }
+
+        auto in = new io::stream<InSocketStream>(client_sock, ssl, alpn);
         auto out = new io::stream<OutSocketStream>(client_sock, ssl);
 
         return {in, out};
@@ -110,6 +131,20 @@ void HTTPServ::ServerSocket::initTLS() {
     }
 
     SSL_CTX_set_ecdh_auto(sslCtx, 1);
+
+    auto alpnNegFn = [](SSL *ssl, const unsigned char **out, unsigned char *outlen, const unsigned char *in, unsigned int inlen, void *protocolVector) -> int {
+        auto result = SSL_select_next_proto(
+            const_cast<unsigned char **>(out), outlen, serverProtocols, sizeof(serverProtocols), in, inlen
+        );
+
+        if (result == OPENSSL_NPN_NEGOTIATED) {
+            return SSL_TLSEXT_ERR_OK;
+        }
+
+        return SSL_TLSEXT_ERR_NOACK;
+    };
+
+    SSL_CTX_set_alpn_select_cb(sslCtx, alpnNegFn, nullptr);
 
     if (SSL_CTX_use_certificate_file(sslCtx, tls->certFile.c_str(), SSL_FILETYPE_PEM) <= 0) {
         throw SocketError("Unable to configure SSL certificate file.");

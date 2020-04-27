@@ -11,10 +11,13 @@ using namespace std;
 
 HTTPServ::HTTPV1::HTTPV1(io::stream<InSocketStream> &inStream, io::stream<OutSocketStream> &outStream) :
     inStream(inStream), outStream(outStream) {
+
+    parseRequestLine();
+    parseHeaders();
 }
 
 bool HTTPServ::HTTPV1::canUpgrade() {
-    return false;
+    return upgradable;
 }
 
 int HTTPServ::HTTPV1::readBody(char *buf, int numBytes) {
@@ -71,7 +74,7 @@ void HTTPServ::HTTPV1::parseRequestLine() {
 
     verb = HTTP::VERB_MAP[split[0]];
     uri = HTTP::decode(uriParts[0]);
-    httpVersion = split[2] == HTTP::VERSION_2 ? HTTP::VERSION_2 : HTTP::VERSION_1_1;
+    upgradable = split[2] == HTTP::VERSION_2;
 
     parseQueryString(uriParts[1]);
 
@@ -125,13 +128,10 @@ void HTTPServ::HTTPV1::writeHeaders(std::unordered_map<std::string, std::string>
     for (auto &[name, value] : headers) {
         outStream << name << ": " << value << HTTP::PROTO_ENDL;
     }
+
+    outStream << HTTP::PROTO_ENDL;
 }
 
 void HTTPServ::HTTPV1::writeBody(const std::string &body) {
-    outStream << HTTP::PROTO_ENDL << body;
-}
-
-void HTTPServ::HTTPV1::init() {
-    parseRequestLine();
-    parseHeaders();
+    outStream << body;
 }

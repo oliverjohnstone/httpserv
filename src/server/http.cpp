@@ -31,6 +31,8 @@ namespace HTTPServ::HTTP {
     };
 
     std::unordered_map<STATUS, const char *> STATUS_TEXT = {
+        {(STATUS)101, "Switching Protocols"},
+
         {STATUS::OK, "OK"},
         {STATUS::CREATED, "Created"},
         {STATUS::ACCEPTED, "Accepted"},

@@ -38,7 +38,3 @@ std::string& HTTPServ::HTTPVersion::getHeader(const std::string& name) {
     return headers[name];
 }
 
-const char *HTTPServ::HTTPVersion::getVersion() {
-    return httpVersion;
-}
-

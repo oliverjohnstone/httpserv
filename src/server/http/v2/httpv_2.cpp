@@ -4,13 +4,11 @@
 
 #include "httpv_2.h"
 
-HTTPServ::HTTPV2::HTTPV2(HTTPV1 *v1) : v1(v1) {
+using namespace std;
+
+HTTPServ::HTTPV2::HTTPV2() {
     // TODO
     throw std::runtime_error("not implemented");
-}
-
-HTTPServ::HTTPV2::~HTTPV2() {
-    delete v1;
 }
 
 int HTTPServ::HTTPV2::readBody(char *buf, int numBytes) {
@@ -18,10 +16,16 @@ int HTTPServ::HTTPV2::readBody(char *buf, int numBytes) {
     return 0;
 }
 
-HTTPServ::HTTPV2* HTTPServ::HTTPV2::upgrade() {
-    // TODO
-    return this;
-}
+//HTTPServ::HTTPV2* HTTPServ::HTTPV2::upgrade() {
+//    v1->writeStatusHeader((HTTP::STATUS)101); // TODO - Should we include this in the enum (Server impl specific)?
+//    unordered_map<string, string> headers = {
+//        {"connection", "upgrade"},
+//        {"upgrade", "h2c"} // TODO - I think this should be determined by if the connection is over tls
+//    };
+//    v1->writeHeaders(headers);
+//    v1->flush();
+//    return this;
+//}
 
 void HTTPServ::HTTPV2::flush() {
     // TODO
@@ -36,9 +40,5 @@ void HTTPServ::HTTPV2::writeHeaders(std::unordered_map<std::string, std::string>
 }
 
 void HTTPServ::HTTPV2::writeBody(const std::string &body) {
-    // TODO
-}
-
-void HTTPServ::HTTPV2::init() {
     // TODO
 }

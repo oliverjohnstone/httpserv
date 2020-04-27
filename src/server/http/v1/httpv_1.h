@@ -8,13 +8,13 @@
 #include <server/stream.h>
 #include <boost/iostreams/stream.hpp>
 #include "../version.h"
-#include "../http_stream.h"
 
 namespace HTTPServ {
     class HTTPV1 : public HTTPVersion {
         private:
             io::stream<InSocketStream> &inStream;
             io::stream<OutSocketStream> &outStream;
+            bool upgradable = false;
 
             void parseHeaders();
             void parseRequestLine();
@@ -26,7 +26,6 @@ namespace HTTPServ {
             int readBody(char *buf, int numBytes) override;
             void flush() override;
             ~HTTPV1();
-            void init() override;
             void writeStatusHeader(HTTP::STATUS status) override;
             void writeHeaders(std::unordered_map<std::string, std::string> &headers) override;
             void writeBody(const std::string &body) override;
